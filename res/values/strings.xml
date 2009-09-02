@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+  <string name="app_name">MySudoku</string>
+  <string name="main_activity_title">MySudoku from dreamware.org</string>
+  <string name="game_activity_title">MySudoku from dreamware.org</string>
+  <string name="main_title">Welcome to MySudoku!</string>
+
+  <!-- Menu -->
+  <string name="menu_item_title_new_game">New Game</string>
+  <string name="menu_item_title_preferences">Preferences</string>
+  <string name="menu_item_shortcut_preferences">s</string>
+  <string name="menu_item_title_help">Help</string>
+
+  <!-- Preferences -->
+  <string name="pref_activity_title">MySudoku Preferences</string>
+  <string name="music_pref_title">Music</string>
+  <string name="music_pref_summary">Play background music</string>
+
+  <string name="hints_pref_title">Hints</string>
+  <string name="hints_pref_summary">Show hints</string>
+
+  <!-- Help -->
+  <string name="about_text">This is the first application I've written for Android platform.</string>
+  <string name="rules_text">The goal is to fill the empty cells with numbers 1 to 9, so that each row, column and 3x3 block contains each digit exactly once.\n\nEach Sudoku has a unique solution that can be reached logically without guessing</string>
+
+  <!-- Choose Difficulty Level dialog -->
+  <string name="level_dialog_title">Choose Difficulty Level</string>
+  <string name="easy_level">Easy</string>
+  <string name="medium_level">Medium</string>
+  <string name="hard_level">Hard</string>
+  <string name="genius_level">Genius</string>
+
+  <!-- Help Dialog -->
+  <string name="help_dialog_title">Help!</string>
+  <string name="rules_title">Rules</string>
+  <string name="about_title">About</string>
+
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:id="@+id/menu_item_new_game"
+        android:title="@string/menu_item_title_new_game"
+        android:icon="@drawable/android:ic_menu_add"/>
+  <item android:id="@+id/menu_item_preferences"
+        android:title="@string/menu_item_title_preferences"
+        android:icon="@drawable/android:ic_menu_edit"
+        android:alphabeticShortcut="@string/menu_item_shortcut_preferences"/>
+  <item android:id="@+id/menu_item_help"
+        android:title="@string/menu_item_title_help"
+        android:icon="@drawable/android:ic_menu_help" />
+
+</menu>

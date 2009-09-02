@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Entries appears on the Choose Difficulty Level dialog -->
+  <array name="level">
+    <item>@string/easy_level</item>
+    <item>@string/medium_level</item>
+    <item>@string/hard_level</item>
+    <item>@string/genius_level</item>
+  </array>
+
+  <!-- Entries appears on the Help dialog -->
+  <array name="help">
+    <item>@string/rules_title</item>
+    <item>@string/about_title</item>
+  </array>
+
+</resources>
