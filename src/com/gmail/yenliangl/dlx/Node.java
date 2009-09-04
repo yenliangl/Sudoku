@@ -1,4 +1,4 @@
-package com.gmail.yenliangl.DLX;
+package com.gmail.yenliangl.dlx;
 
 public class Node {
     Node columnNode = null;

@@ -1,4 +1,4 @@
-package com.gmail.yenliangl.DLX;
+package com.gmail.yenliangl.dlx;
 
 public class ColumnNode extends Node {
     public int length;

@@ -1,13 +1,13 @@
-package com.gmail.yenliangl.DLX;
+package com.gmail.yenliangl.dlx;
 
 import java.util.ArrayList;
 
-public class DancingLinksMatrix {
+public class Structure {
     private ColumnNode mRootColumnNode;
     private ArrayList<ColumnNode> mColumnHeader;
     private ArrayList<Node> mRowHeader;
 
-    public DancingLinksMatrix(int[][] matrix) {
+    public Structure(int[][] matrix) {
         mColumnHeader = new ArrayList<ColumnNode>(matrix[0].length);
         mRowHeader = new ArrayList<Node>(matrix.length);
         mRootColumnNode = createRootColumnNode();
@@ -90,7 +90,7 @@ public class DancingLinksMatrix {
                      {1, 0, 0, 1, 0, 0, 0},
                      {0, 1, 0, 0, 0, 0, 1},
                      {0, 0, 0, 1, 1, 0, 1}};
-        DancingLinksMatrix dls = new DancingLinksMatrix(A);
+        Structure dls = new Structure(A);
 
         if(dls.getRowNode(2).left != dls.getColumnNode(5).up) {
             System.out.println("Node (2,2) fails");
