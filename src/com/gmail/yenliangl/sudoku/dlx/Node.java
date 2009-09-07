@@ -6,4 +6,7 @@ public class Node {
     Node right = this;
     Node up = this;
     Node down = this;
+
+    // Extra application data
+    int extra = -1;
 }

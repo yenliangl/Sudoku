@@ -1,18 +1,21 @@
-package com.gmail.yenliangl.dlx;
+package com.gmail.yenliangl.sudoku.dlx;
 
 import java.util.ArrayList;
 import java.util.Stack;
 
-public class Solver {
+import com.gmail.yenliangl.sudoku.puzzle.*;
+
+public abstract class Solver {
     public enum Result { FAILED, SUCCESSFUL };
 
     public Solver() {
     }
 
-    public void solve(int[] puzzle, int N) {
-        Structure dlxStructure = createDlxStructure(puzzle, N);
+    public void solve(Puzzle puzzle) {
+        Matrix matrix = new Matrix(puzzle);
+
         Stack<Node> solution;
-        solve(dlxStructure, 0, solution);
+        solve(matrix, 0, solution); // k = 0
     }
 
     protected abstract void onSolved(Stack<Node> solution);
@@ -20,14 +23,14 @@ public class Solver {
     protected abstract void onCoveredColumn(ColumnNode c);
     protected abstract void onUncoveredColumn(ColumnNode c);
 
-    private void solve(Structure dlxStructure, int k, Stack<Node> solution) {
-        ColumnNode h = dlxStructure.getRootColumnNode();
+    private void solve(Matrix matrix, int k, Stack<Node> solution) {
+        ColumnNode h = matrix.getRootColumnNode();
         if(h.right == h) {
             onSolved(solution);
             return;
         }
 
-        ColumnNode c = getLowestNumberColumnNode(dlxStructure.getRootColumnNode());
+        ColumnNode c = getLowestNumberColumnNode(matrix.getRootColumnNode());
         coverColumn(c);
 
         for(Node r = c.down; r != c; r = r.down) {
@@ -35,7 +38,7 @@ public class Solver {
             for(Node j = r.right; j != r; j = j.right) {
                 coverColumn(j);
             }
-            solve(dlxStructure, k+1, solution);
+            solve(matrix, k+1, solution);
 
             r = solution.pop();
             c = r.columnNode;
@@ -48,8 +51,18 @@ public class Solver {
         onUnsolved();
     }
 
-    private Structure createDlxStructure(final int[] puzzle, final int N) {
-        Structure dlxStructure = new Structure(        );
+    // @todo:
+    //
+    //
+    //
+    //
+    //
+    //
+    public void addRowToSolution(final int rowIndex) {
+        Node node = matrix.getRowNode(rowIndex);
+        for(Node j = node; j    ) {
+            coverColumn(      );
+        }
 
 
 
@@ -57,7 +70,11 @@ public class Solver {
 
 
 
-        return dlxStructure;
+
+
+
+
+
     }
 
     private ColumnNode getLowestNumberColumnNode(ColumnNode h) {
@@ -87,7 +104,7 @@ public class Solver {
         onCoveredColumn(c);
     }
 
-    private uncoverColumn(ColumnNode c) {
+    private void uncoverColumn(ColumnNode c) {
         for(Node i = c.up; i !=c; i = i.up) {
             for(Node j = i.left; j != i; j = j.left) {
                 j.columnNode.length++;
