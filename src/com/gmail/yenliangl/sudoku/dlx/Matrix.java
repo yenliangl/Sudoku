@@ -55,6 +55,10 @@ public class Matrix {
         return mRowHeader.get(index);
     }
 
+    public int getSizeOfColumnHeader() {
+        return mColumnHeader.size();
+    }
+
     private int calculateSizeOfColumnHeader() {
         final int dimension = mPuzzle.getDimension();
 
@@ -256,20 +260,24 @@ public class Matrix {
      * @param args
      */
     public static void main(String[] args) {
-        StandardPuzzle puzzle =
-            new StandardPuzzle(
-                new int[][] {{0, 2, 3, 4, 0, 0, 7, 0, 0},
-                             {4, 5, 6, 0, 8, 9, 1, 0, 0},
-                             {7, 8, 9, 1, 0, 3, 0, 0, 0},
-                             {0, 2, 0, 4, 5, 0, 0, 8, 9},
-                             {1, 2, 0, 0, 5, 6, 0, 8, 0},
-                             {1, 2, 0, 4, 0, 0, 0, 8, 9},
-                             {0, 2, 0, 4, 5, 6, 0, 0, 9},
-                             {1, 2, 3, 0, 5, 0, 7, 0, 0},
-                             {0, 0, 0, 4, 0, 6, 0, 0, 9}});
-        Matrix matrix = new Matrix(puzzle);
+
+        // Should only make sure that Matrix generates good DLX
+        // matrix.
+        Matrix matrix = new Matrix(new StandardPuzzle(9));
 
         // Start to check if the dancing links matrix is valid
+        System.out.println("Size of column header = " +
+                           matrix.getSizeOfColumnHeader());
 
+        // Check Row-Column constraint nodes
+        ColumnNode columnNode = matrix.getColumnNode(0);
+        System.out.println("ColumnNode[0] = " + columnNode);
+        Node node;
+        int count = 0;
+        for(node = columnNode.down; node != columnNode; node = node.down) {
+            count++;
+            System.out.println("=====> node = " + node);
+        }
+        System.out.println("Size of column node 0: " + count);
     }
 }

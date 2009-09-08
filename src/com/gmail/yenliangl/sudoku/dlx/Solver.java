@@ -5,10 +5,26 @@ import java.util.Stack;
 
 import com.gmail.yenliangl.sudoku.puzzle.*;
 
-public abstract class Solver {
-    // public enum Result { FAILED, SUCCESSFUL };
+public class Solver {
 
-    public Solver() {}
+    interface Listener {
+        void onSolved(Puzzle answer);
+        void onUnsolved();
+        void onCoverColumn(ColumnNode c);
+        void onUncoverColumn(ColumnNode c);
+        void onPushRowToSolution(Node r);
+        void onPopRowFromSoluton(Node r);
+    }
+
+    private Listener mListener;
+
+    public Solver(Listener listener) {
+        mListener = listener;
+    }
+
+    public void setListener(Listener listener) {
+        mListener = listener;
+    }
 
     /**
      *
@@ -38,13 +54,6 @@ public abstract class Solver {
         solve(matrix, 0, solution); // k = 0
     }
 
-    protected abstract void onSolved(Puzzle answer);
-    protected abstract void onUnsolved();
-    protected abstract void onCoverColumn(ColumnNode c);
-    protected abstract void onUncoverColumn(ColumnNode c);
-    protected abstract void onPushRowToSolution(Node r);
-    protected abstract void onPopRowFromSoluton(Node r);
-
     /**
      *
      *
@@ -65,7 +74,7 @@ public abstract class Solver {
 
         for(Node r = c.down; r != c; r = r.down) {
             solution.push(r);
-            onPushRowToSolution(r);
+            mListener.onPushRowToSolution(r);
 
             for(Node j = r.right; j != r; j = j.right) {
                 coverColumn(j);
@@ -73,7 +82,7 @@ public abstract class Solver {
             solve(k+1, solution);
 
             r = solution.pop();
-            onPopRowFromSoluton(r);
+            mListener.onPopRowFromSoluton(r);
 
             c = r.columnNode;
             for(Node j = r.left; j != r; j = j.left) {
@@ -82,7 +91,7 @@ public abstract class Solver {
         }
         uncoverColumn(c);
 
-        onUnsolved();
+        mListener.onUnsolved();
     }
 
     /**
@@ -100,6 +109,7 @@ public abstract class Solver {
             coverColumn(n.columnNode);
         }
         solution.push(start);
+        mListener.onPushRowToSolution(start);
     }
 
     /**
@@ -136,7 +146,7 @@ public abstract class Solver {
                 j.columnNode.length--;
             }
         }
-        onCoverColumn(c);
+        mListener.onCoverColumn(c);
     }
 
     /**
@@ -154,7 +164,7 @@ public abstract class Solver {
         }
         c.right.left = c;
         c.left.right = c;
-        onUncoverColumn(c);
+        mListener.onUncoverColumn(c);
     }
 
     /**
@@ -164,7 +174,7 @@ public abstract class Solver {
      */
     private void generateAnswer(Stack<Node> solutionStack) {
         StandardPuzzle answer = new StandardPuzzle( 9 /* @todo */ );
-        onSolved(answer);
+        mListener.onSolved(answer);
     }
 
 
@@ -176,8 +186,32 @@ public abstract class Solver {
      *
      */
     public static void main(String[] args) {
+        StandardPuzzle puzzle =
+            new StandardPuzzle(
+                new int[][] {{4, 0, 0, 3, 0, 1, 0, 8, 0},
+                             {6, 0, 1, 0, 2, 0, 0, 0, 0},
+                             {0, 3, 9, 0, 7, 0, 0, 0, 0},
+                             //------------------------//
+                             {9, 2, 0, 0, 0, 0, 0, 4, 0},
+                             {0, 0, 0, 7, 0, 5, 0, 0, 0},
+                             {0, 5, 0, 4, 0, 0, 0, 6, 3},
+                             //------------------------//
+                             {0, 0, 0, 0, 1, 0, 2, 3, 0},
+                             {0, 0, 0, 0, 6, 0, 9, 0, 8},
+                             {0, 1, 0, 9, 0, 8, 0, 0, 5}});
+        Matrix matrix = new Matrix(puzzle);
+        Solver solver = new Solver(
+            new Solver.Listener() {
+                @Override
+                public void onSolved() {
+                }
+
+                @Override
+                public void onUnsolved() {
+                }
 
 
+            });
 
     }
 }
