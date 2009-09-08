@@ -1,6 +1,7 @@
 package com.gmail.yenliangl.sudoku.puzzle;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Pentomino {
     private final int mIndex;
@@ -8,6 +9,8 @@ public class Pentomino {
 
     Pentomino(final int index) {
         mIndex = index;
+
+        mCells = new ArrayList<Cell>();
     }
 
     public int getIndex() {

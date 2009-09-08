@@ -6,41 +6,75 @@ import java.util.Stack;
 import com.gmail.yenliangl.sudoku.puzzle.*;
 
 public abstract class Solver {
-    public enum Result { FAILED, SUCCESSFUL };
+    // public enum Result { FAILED, SUCCESSFUL };
 
-    public Solver() {
-    }
+    public Solver() {}
 
+    /**
+     *
+     *
+     * @param puzzle
+     */
     public void solve(Puzzle puzzle) {
         Matrix matrix = new Matrix(puzzle);
 
         Stack<Node> solution;
+
+        // Extract solved cells in the puzzle and add them into DLX
+        // matrix as solved rows;
+        int dimension = puzzle.getDimension();
+        Iterator<Cell> allCells = puzzle.getCells();
+        while(allCells.hasNext()) {
+            Cell cell = allCells.next();
+            int value = cell.getValue();
+            if(value != 0) {    // This is a solved cell.
+                int r = cell.getRow(), c = cell.getColumn();
+                int rowIndexInMatrix = r * dimension * dimension +
+                                       c * dimension + value - 1;
+                addRowToSolution(matrix, rowIndexInMatrix, solution);
+            }
+        }
+
         solve(matrix, 0, solution); // k = 0
     }
 
-    protected abstract void onSolved(Stack<Node> solution);
+    protected abstract void onSolved(Puzzle answer);
     protected abstract void onUnsolved();
-    protected abstract void onCoveredColumn(ColumnNode c);
-    protected abstract void onUncoveredColumn(ColumnNode c);
+    protected abstract void onCoverColumn(ColumnNode c);
+    protected abstract void onUncoverColumn(ColumnNode c);
+    protected abstract void onPushRowToSolution(Node r);
+    protected abstract void onPopRowFromSoluton(Node r);
 
+    /**
+     *
+     *
+     * @param matrix
+     * @param k
+     * @param solution
+     */
     private void solve(Matrix matrix, int k, Stack<Node> solution) {
         ColumnNode h = matrix.getRootColumnNode();
         if(h.right == h) {
-            onSolved(solution);
+            generateAnswer(solution);
             return;
         }
 
-        ColumnNode c = getLowestNumberColumnNode(matrix.getRootColumnNode());
+        ColumnNode c =
+            getColumnNodeWithFewestNodes(matrix.getRootColumnNode());
         coverColumn(c);
 
         for(Node r = c.down; r != c; r = r.down) {
             solution.push(r);
+            onPushRowToSolution(r);
+
             for(Node j = r.right; j != r; j = j.right) {
                 coverColumn(j);
             }
-            solve(matrix, k+1, solution);
+            solve(k+1, solution);
 
             r = solution.pop();
+            onPopRowFromSoluton(r);
+
             c = r.columnNode;
             for(Node j = r.left; j != r; j = j.left) {
                 uncoverColumn(j.columnNode);
@@ -51,33 +85,31 @@ public abstract class Solver {
         onUnsolved();
     }
 
-    // @todo:
-    //
-    //
-    //
-    //
-    //
-    //
-    public void addRowToSolution(final int rowIndex) {
-        Node node = matrix.getRowNode(rowIndex);
-        for(Node j = node; j    ) {
-            coverColumn(      );
+    /**
+     *
+     *
+     * @param matrix
+     * @param rowIndex
+     * @param solution
+     */
+    private void addRowToSolution(Matrix matrix,
+                                  final int rowIndex,
+                                  Stack<Node> solution) {
+        Node start = matrix.getRowNode(rowIndex);
+        for(Node n = start; n != start; n=n.right) {
+            coverColumn(n.columnNode);
         }
-
-
-
-
-
-
-
-
-
-
-
-
+        solution.push(start);
     }
 
-    private ColumnNode getLowestNumberColumnNode(ColumnNode h) {
+    /**
+     *
+     *
+     * @param h
+     *
+     * @return
+     */
+    private ColumnNode getColumnNodeWithFewestNodes(ColumnNode h) {
         ColumnNode result;
         int s = Integer.MAX_VALUE;
         for(Node j = h.right; j != h; j = j.right) {
@@ -89,10 +121,14 @@ public abstract class Solver {
         return result;
     }
 
+    /**
+     * Cover the column from column node @p c.
+     *
+     * @param c Column node.
+     */
     private void coverColumn(ColumnNode c) {
         c.right.left = c;
         c.left.right = c.right;
-
         for(Node i = c.down; i != c; i = i.down ) {
             for(Node j = i.left; j != i; j = j.right ) {
                 j.down.up = j.up;
@@ -100,10 +136,14 @@ public abstract class Solver {
                 j.columnNode.length--;
             }
         }
-
-        onCoveredColumn(c);
+        onCoverColumn(c);
     }
 
+    /**
+     * Uncover the column represented by column node @c c
+     *
+     * @param c Column node.
+     */
     private void uncoverColumn(ColumnNode c) {
         for(Node i = c.up; i !=c; i = i.up) {
             for(Node j = i.left; j != i; j = j.left) {
@@ -114,7 +154,30 @@ public abstract class Solver {
         }
         c.right.left = c;
         c.left.right = c;
+        onUncoverColumn(c);
+    }
 
-        onUncoveredColumn(c);
+    /**
+     *
+     *
+     * @param solutionStack
+     */
+    private void generateAnswer(Stack<Node> solutionStack) {
+        StandardPuzzle answer = new StandardPuzzle( 9 /* @todo */ );
+        onSolved(answer);
+    }
+
+
+    /**
+     *
+     *
+     *
+     *
+     *
+     */
+    public static void main(String[] args) {
+
+
+
     }
 }

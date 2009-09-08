@@ -1,7 +1,7 @@
-package com.gmail.yenliangl.dlx;
+package com.gmail.yenliangl.sudoku.dlx;
 
 public class Node {
-    Node columnNode = null;
+    ColumnNode columnNode = null;
     Node left = this;
     Node right = this;
     Node up = this;

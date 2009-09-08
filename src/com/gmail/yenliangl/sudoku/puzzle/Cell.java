@@ -3,17 +3,17 @@ package com.gmail.yenliangl.sudoku.puzzle;
 public class Cell {
     private OnValueChangedListener mValueChangedListener;
     private int mValue;
-    private final int mRow;
-    private final int mColumn;
+    private final int mRowIndex;
+    private final int mColumnIndex;
 
-    PuzzleCell(final int row, final int col) {
-        mRow = row;
-        mColumn = mCol;
+    Cell(final int rowIndex, final int colIndex) {
+        mRowIndex = rowIndex;
+        mColumnIndex = colIndex;
         mValue = 0;
     }
 
-    public class OnValueChangedListener {
-        protected abstract void onValueChanged(int oldVal, int newVal);
+    interface OnValueChangedListener {
+        void onValueChanged(int oldVal, int newVal);
     }
 
     public void setValueChangedListener(OnValueChangedListener listener) {
@@ -25,7 +25,7 @@ public class Cell {
             return;
         }
 
-        if(value != mValue && mValueChangedListener) {
+        if((value != mValue) && (mValueChangedListener != null)) {
             mValueChangedListener.onValueChanged(mValue, value);
             mValue = value;
         }
@@ -35,12 +35,12 @@ public class Cell {
         return mValue;
     }
 
-    public int getRow() {
-        return mRow;
+    public int getRowIndex() {
+        return mRowIndex;
     }
 
-    public int getColumn() {
-        return mColumn;
+    public int getColumnIndex() {
+        return mColumnIndex;
     }
 
 }

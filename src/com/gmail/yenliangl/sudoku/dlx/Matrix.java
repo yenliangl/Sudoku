@@ -2,6 +2,7 @@ package com.gmail.yenliangl.sudoku.dlx;
 
 import com.gmail.yenliangl.sudoku.puzzle.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Matrix {
     private final Puzzle mPuzzle;
@@ -9,26 +10,52 @@ public class Matrix {
     private ArrayList<ColumnNode> mColumnHeader;
     private ArrayList<Node> mRowHeader;
 
-    // Create DLX matrix from a sudoku puzzle
+    /**
+     * Create dancing links matrix from a sudoku puzzle.
+     *
+     * @param puzzle
+     *
+     */
     public Matrix(final Puzzle puzzle) {
         mPuzzle = puzzle;
         createColumnHeader();
+
+        mRowHeader = new ArrayList<Node>();
         createNodes();
     }
 
+    /**
+     * Return root node of column header.
+     *
+     * @return ColumnNode
+     */
     public ColumnNode getRootColumnNode() {
         return mRootColumnNode;
     }
 
+    /**
+     * Return a column node in column header from its index.
+     *
+     * @param index
+     *
+     * @return
+     */
     public ColumnNode getColumnNode(int index) {
         return mColumnHeader.get(index);
     }
 
+    /**
+     *
+     *
+     * @param index
+     *
+     * @return
+     */
     public Node getRowNode(int index) {
         return mRowHeader.get(index);
     }
 
-    protected int calculateSizeOfColumnHeader() {
+    private int calculateSizeOfColumnHeader() {
         final int dimension = mPuzzle.getDimension();
 
         return dimension * dimension +
@@ -40,9 +67,8 @@ public class Matrix {
     private void createColumnHeader() {
         mRootColumnNode = createRootColumnNode();
 
-        // TODO: Calculate how many column nodes should this matrix has?
-        // It should be obtained from physical puzzle.
         final int numOfColumns = calculateSizeOfColumnHeader();
+        mColumnHeader = new ArrayList<ColumnNode>(numOfColumns);
 
         for(int i = 0; i < numOfColumns; i++) {
             ColumnNode columnNode = new ColumnNode();
@@ -74,15 +100,25 @@ public class Matrix {
 
     private int createRowColumnNodes() {
         final int dimension = mPuzzle.getDimension();
-        for(int row = 0; i < dimension; i++) {
-            for(int col = 0; j < dimension; j++) {
-                int columnIndex = row * dimension + col;
-                ColumnNode columnNode = getColumnNode(columnIndex);
+        Iterator<Row> rows = mPuzzle.getRows();
+        while(rows.hasNext()) {
+            Row row = rows.next();
+            int rowIndex = row.getIndex();
+
+            Iterator<Column> columns = mPuzzle.getColumns();
+            while(columns.hasNext()) {
+                int columnIndex = columns.next().getIndex();
+                int columnNodeIndex = rowIndex * dimension +
+                                      columnIndex;
+
+                ColumnNode columnNode = getColumnNode(columnNodeIndex);
 
                 for(int value = 1; value <= 9; value++) {
                     Node node = new Node();
                     node.columnNode = columnNode;
-                    node.extra = calculateRowIndex(row, col, value);
+                    node.extra = calculateRowIndex(rowIndex,
+                                                   columnIndex,
+                                                   value);
 
                     addToRow(node);
                 }
@@ -92,54 +128,106 @@ public class Matrix {
         return dimension * dimension;
     }
 
-    private int createRowNumberNodes(final int startColumnIndex) {
+    private int createRowNumberNodes(final int startColumnNodeIndex) {
         final int dimension = mPuzzle.getDimension();
-        for(int row = 0; row < dimension; row++) {
-            for(int col = 0; col < dimension; col++) {
+
+        Iterator<Row> rows = mPuzzle.getRows();
+        while(rows.hasNext()) {
+            Row row = rows.next();
+            int rowIndex = row.getIndex();
+
+            Iterator<Column> columns = mPuzzle.getColumns();
+            while(columns.hasNext()) {
+                Column column = columns.next();
+                int columnIndex = column.getIndex();
+
                 for(int value = 1; value <= 9; value++) {
-                    int rowIndex = calculateRowIndex(row, col, value);
-                    int columnIndex =
-                        row * dimension + (value - 1) + startColumnIndex;
+                    int rowNodeIndex = calculateRowIndex(rowIndex,
+                                                         columnIndex,
+                                                         value);
+
+                    int columnNodeIndex = rowIndex * dimension +
+                                          (value - 1) +
+                                          startColumnNodeIndex;
 
                     Node node = new Node();
-                    node.columnNode = getColumnNode(columnIndex);;
-                    node.extra = rowIndex;
+                    node.columnNode = getColumnNode(columnNodeIndex);;
+                    node.extra = rowNodeIndex;
                     node.columnNode.addNode(node);
                     addToRow(node);
                 }
             }
         }
 
-        return startColumnIndex + dimension * 9;
+        return startColumnNodeIndex + dimension * 9;
     }
 
-    private int createColumnNumberNodes(final int startColumnIndex) {
-        for(int row = 0; row < dimension; row++) {
-            for(int col = 0; col < dimension; col++) {
+    private int createColumnNumberNodes(final int startColumnNodeIndex) {
+        final int dimension = mPuzzle.getDimension();
+
+        Iterator<Row> rows = mPuzzle.getRows();
+        while(rows.hasNext()) {
+            Row row = rows.next();
+            int rowIndex = row.getIndex();
+
+            Iterator<Column> columns = mPuzzle.getColumns();
+            while(columns.hasNext()) {
+                Column column = columns.next();
+                int columnIndex = column.getIndex();
+
                 for(int value = 1; value <= 9; value++) {
+                    int rowNodeIndex = calculateRowIndex(rowIndex,
+                                                         columnIndex,
+                                                         value);
 
-                    int rowIndex = calculateRowIndex(row, col, value);
-                    int columnIndex =
-                        col * dimension + (value - 1) + startColumnIndex;
+                    int columnNodeIndex = columnIndex * dimension +
+                                          (value - 1) +
+                                          startColumnNodeIndex;
+                    ColumnNode columnNode = getColumnNode(columnNodeIndex);
 
-                    ColumnNode columnNode = getColumnNode(columnIndex);
                     Node node = new Node();
-                    node.columnNode = getColumnNode(columnIndex);
-                    node.extra = rowIndex;
+                    node.columnNode = getColumnNode(columnNodeIndex);;
+                    node.extra = rowNodeIndex;
                     node.columnNode.addNode(node);
                     addToRow(node);
                 }
             }
         }
 
-        return startColumnIndex + dimension * 9;
+        return startColumnNodeIndex + dimension * 9;
     }
 
     private int createPentominoNumberNodes(final int startColumnIndex) {
+        final int dimension = mPuzzle.getDimension();
 
+        Iterator<Row> rows = mPuzzle.getRows();
+        while(rows.hasNext()) {
+            Row row = rows.next();
+            int rowIndex = row.getIndex();
 
+            Iterator<Column> columns = mPuzzle.getColumns();
+            while(columns.hasNext()) {
+                Column column = columns.next();
+                int columnIndex = column.getIndex();
 
-        return startColumnIndex + 9 * 9;
+                for(int value = 1; value <= 9; value++) {
+                    int rowNodeIndex = calculateRowIndex(rowIndex,
+                                                         columnIndex,
+                                                         value);
+                    int columnNodeIndex =
+                        mPuzzle.getPentomino(rowIndex, columnIndex).getIndex() * dimension +
+                        value - 1;
+                    ColumnNode columnNode = getColumnNode(columnNodeIndex);
+
+                    Node node = new Node();
+                    node.columnNode = getColumnNode(columnNodeIndex);;
+                    node.extra = rowNodeIndex;
+                    node.columnNode.addNode(node);
+                    addToRow(node);
+                }
+            }
+        }
+        return startColumnIndex + mPuzzle.getNumOfPentominoes() * 9;
     }
 
     private int calculateRowIndex(final int row,
@@ -158,43 +246,30 @@ public class Matrix {
             node.right = rootNode;
             rootNode.left = node;
         } catch(IndexOutOfBoundsException e) {
-            mRowHeader.addNode(node);
+            mRowHeader.add(node);
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     *
+     *
+     * @param args
+     */
     public static void main(String[] args) {
-        int[][] A = {{0, 0, 1, 0, 1, 1, 0},
-                     {1, 0, 0, 1, 0, 0, 1},
-                     {0, 1, 1, 0, 0, 1, 0},
-                     {1, 0, 0, 1, 0, 0, 0},
-                     {0, 1, 0, 0, 0, 0, 1},
-                     {0, 0, 0, 1, 1, 0, 1}};
-        Matrix dls = new Matrix(A);
+        StandardPuzzle puzzle =
+            new StandardPuzzle(
+                new int[][] {{0, 2, 3, 4, 0, 0, 7, 0, 0},
+                             {4, 5, 6, 0, 8, 9, 1, 0, 0},
+                             {7, 8, 9, 1, 0, 3, 0, 0, 0},
+                             {0, 2, 0, 4, 5, 0, 0, 8, 9},
+                             {1, 2, 0, 0, 5, 6, 0, 8, 0},
+                             {1, 2, 0, 4, 0, 0, 0, 8, 9},
+                             {0, 2, 0, 4, 5, 6, 0, 0, 9},
+                             {1, 2, 3, 0, 5, 0, 7, 0, 0},
+                             {0, 0, 0, 4, 0, 6, 0, 0, 9}});
+        Matrix matrix = new Matrix(puzzle);
 
-        if(dls.getRowNode(2).left != dls.getColumnNode(5).up) {
-            System.out.println("Node (2,2) fails");
-        }
+        // Start to check if the dancing links matrix is valid
 
-        if(dls.getRowNode(5).left.left != dls.getColumnNode(4).down.down) {
-            System.out.println("Node (5,4) fails");
-        }
-
-        if(dls.getColumnNode(0).down.down.right != dls.getRowNode(5).left.up.up.left.down) {
-            System.out.println("Node (3,3) fails");
-        }
     }
 }
