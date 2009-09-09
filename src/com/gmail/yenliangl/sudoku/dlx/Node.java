@@ -8,5 +8,7 @@ public class Node {
     Node down = this;
 
     // Extra application data
-    int extra = -1;
+    int rowIndex = -1;
+    int columnIndex = -1;
+    int value = 0;
 }

@@ -65,16 +65,14 @@ public class Solver {
      * @param matrix
      * @param k
      * @param solution
+     *
+     * @return
      */
-    private void solve(Matrix matrix, int k, Stack<Node> solution) {
-
-        System.out.println("solve(matrix, " + k + ", solution)");
-
+    private boolean solve(Matrix matrix, int k, Stack<Node> solution) {
         ColumnNode h = matrix.getRootColumnNode();
         if(h.right == h) {
-            System.out.println("solution found at " + k);
             generateAnswer(solution);
-            return;
+            return true;
         }
 
         ColumnNode c = getColumnNodeWithFewestNodes(matrix.getRootColumnNode());
@@ -87,7 +85,10 @@ public class Solver {
             for(Node j = r.right; j != r; j = j.right) {
                 coverColumn(j.columnNode);
             }
-            solve(matrix, k+1, solution);
+
+            if(solve(matrix, k+1, solution)) {
+                return true;
+            }
 
             r = solution.pop();
             mListener.onPopRowFromSoluton(r);
@@ -100,6 +101,8 @@ public class Solver {
         uncoverColumn(c);
 
         mListener.onUnsolved();
+
+        return false;
     }
 
     /**
@@ -136,8 +139,6 @@ public class Solver {
                 s = j.getSize();
             }
         }
-
-        System.out.println("lowest number column " + result.extra + " number=" + result.getSize());
         return result;
     }
 
@@ -147,10 +148,10 @@ public class Solver {
      * @param c Column node.
      */
     private void coverColumn(ColumnNode c) {
-        c.right.left = c;
+        c.right.left = c.left;
         c.left.right = c.right;
         for(Node i = c.down; i != c; i = i.down ) {
-            for(Node j = i.left; j != i; j = j.right ) {
+            for(Node j = i.right; j != i; j = j.right ) {
                 j.down.up = j.up;
                 j.up.down = j.down;
                 j.columnNode.decrementSize();
@@ -165,7 +166,7 @@ public class Solver {
      * @param c Column node.
      */
     private void uncoverColumn(ColumnNode c) {
-        for(Node i = c.up; i !=c; i = i.up) {
+        for(Node i = c.up; i != c; i = i.up) {
             for(Node j = i.left; j != i; j = j.left) {
                 j.columnNode.incrementSize();
                 j.down.up = j;
@@ -183,23 +184,19 @@ public class Solver {
      * @param solutionStack
      */
     private void generateAnswer(Stack<Node> solutionStack) {
-
-        System.out.println("generateAnswer()");
-
         StandardPuzzle answer = new StandardPuzzle( 9 /* @todo */ );
         mListener.onSolved(answer);
 
         Iterator<Node> nodes = solutionStack.iterator();
         while(nodes.hasNext()) {
             Node node = nodes.next();
-            System.out.print(" " + node.extra);
+            System.out.format("R%dC%d#%d\n",
+                              node.rowIndex+1, node.columnIndex+1,
+                              node.value);
         }
     }
 
     /**
-     *
-     *
-     *
      *
      *
      */
@@ -220,6 +217,7 @@ public class Solver {
             new Solver.Listener() {
                 @Override
                 public void onSolved(Puzzle answer) {
+                    System.out.println("Puzzle solved");
                 }
 
                 @Override

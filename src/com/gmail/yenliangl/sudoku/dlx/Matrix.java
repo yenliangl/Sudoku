@@ -96,7 +96,7 @@ public class Matrix {
 
         for(int i = 0; i < numOfColumns; i++) {
             ColumnNode columnNode = new ColumnNode();
-            columnNode.extra = i;
+            // columnNode.extra = i;
 
             mRootColumnNode.left.right = columnNode;
             columnNode.left = mRootColumnNode.left;
@@ -134,12 +134,16 @@ public class Matrix {
 
                 ColumnNode columnNode = getColumnNode(columnNodeIndex);
                 for(int value = 1; value <= 9; value++) {
+                    int rowNodeIndex = calculateRowIndex(rowIndex,
+                                                         columnIndex,
+                                                         value);
                     Node node = new Node();
                     node.columnNode = columnNode;
-                    node.extra = calculateRowIndex(rowIndex, columnIndex,
-                                                   value);
+                    node.rowIndex = rowIndex;
+                    node.columnIndex = columnIndex;
+                    node.value = value;
                     columnNode.addNode(node);
-                    addToRow(node);
+                    addToRow(rowNodeIndex, node);
                     // if(mListener) {
                     //     mListener.onCreateRowColumnNode();
                     // }
@@ -163,17 +167,20 @@ public class Matrix {
                 int columnIndex = cells.next().getColumnIndex();
 
                 for(int value = 1; value <= 9; value++) {
+                    int rowNodeIndex = calculateRowIndex(rowIndex,
+                                                         columnIndex,
+                                                         value);
                     int columnNodeIndex = rowIndex * dimension +
                                           (value - 1) +
                                           startColumnNodeIndex;
 
                     Node node = new Node();
                     node.columnNode = getColumnNode(columnNodeIndex);
-                    node.extra = calculateRowIndex(rowIndex,
-                                                         columnIndex,
-                                                         value);
+                    node.rowIndex = rowIndex;
+                    node.columnIndex = columnIndex;
+                    node.value = value;
                     node.columnNode.addNode(node);
-                    addToRow(node);
+                    addToRow(rowNodeIndex, node);
 
                     // System.out.format(
                     //     "Add node to (R%dC%d#%d[%d],R%d#%d[%d,%s])\n",
@@ -210,9 +217,11 @@ public class Matrix {
 
                     Node node = new Node();
                     node.columnNode = getColumnNode(columnNodeIndex);;
-                    node.extra = rowNodeIndex;
+                    node.rowIndex = rowIndex;
+                    node.columnIndex = columnIndex;
+                    node.value = value;
                     node.columnNode.addNode(node);
-                    addToRow(node);
+                    addToRow(rowNodeIndex, node);
 
                     // System.out.format(
                     //     "Add node to (R%dC%d#%d[%d],C%d#%d[%d,%s])\n",
@@ -247,10 +256,12 @@ public class Matrix {
                     ColumnNode columnNode = getColumnNode(columnNodeIndex);
 
                     Node node = new Node();
-                    node.columnNode = getColumnNode(columnNodeIndex);;
-                    node.extra = rowNodeIndex;
+                    node.columnNode = getColumnNode(columnNodeIndex);
+                    node.rowIndex = rowIndex;
+                    node.columnIndex = columnIndex;
+                    node.value = value;
                     node.columnNode.addNode(node);
-                    addToRow(node);
+                    addToRow(rowNodeIndex, node);
 
                     // System.out.format(
                     //     "Add node to (R%dC%d#%d[%d],B%d#%d[%d,%s])\n",
@@ -263,10 +274,10 @@ public class Matrix {
         return startColumnNodeIndex + mPuzzle.getNumOfPentominoes() * 9;
     }
 
-    private void addToRow(Node node) {
+    private void addToRow(int rowNodeIndex, Node node) {
         Node rootNode;
         try {
-            rootNode = mRowHeader.get(node.extra);
+            rootNode = mRowHeader.get(rowNodeIndex);
             rootNode.left.right = node;
             node.left = rootNode.left;
             node.right = rootNode;
