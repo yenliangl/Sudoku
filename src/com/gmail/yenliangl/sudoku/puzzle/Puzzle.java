@@ -59,6 +59,30 @@ public abstract class Puzzle {
         return mCells.get(cellIndex);
     }
 
+    public Iterator<Cell> getCells() {
+        return mCells.iterator();
+    }
+
+    public Iterator<Row> getRows() {
+        return mRows.iterator();
+    }
+
+    public Iterator<Column> getColumns() {
+        return mColumns.iterator();
+    }
+
+    public Iterator<Pentomino> getPentominoes() {
+        return mPentominoes.iterator();
+    }
+
+    public abstract Pentomino getPentomino(int rowIndex, int columnIndex);
+
+    protected abstract void createPentominoes(ArrayList<Pentomino> pentominoes, final int dimension);
+
+    protected Pentomino getPentomino(int index) {
+        return mPentominoes.get(index);
+    }
+
     private void createCells(final int dimension) {
         mCells = new ArrayList<Cell>(dimension * dimension);
 
@@ -96,30 +120,6 @@ public abstract class Puzzle {
                 column.addCell(mCells.get(index));
             }
         }
-    }
-
-    protected Pentomino getPentomino(int index) {
-        return mPentominoes.get(index);
-    }
-
-    protected abstract void createPentominoes(ArrayList<Pentomino> pentominoes, final int dimension);
-
-    public abstract Pentomino getPentomino(int rowIndex, int columnIndex);
-
-    public Iterator<Cell> getCells() {
-        return mCells.iterator();
-    }
-
-    public Iterator<Row> getRows() {
-        return mRows.iterator();
-    }
-
-    public Iterator<Column> getColumns() {
-        return mColumns.iterator();
-    }
-
-    public Iterator<Pentomino> getPentominoes() {
-        return mPentominoes.iterator();
     }
 
     private int calculateCellIndex(final int rowIndex, final int columnIndex) {

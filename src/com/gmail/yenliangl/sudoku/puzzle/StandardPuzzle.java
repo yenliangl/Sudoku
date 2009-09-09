@@ -37,7 +37,7 @@ public class StandardPuzzle extends Puzzle {
     @Override
     public Pentomino getPentomino(int rowIndex, final int columnIndex) {
         int N = (int)Math.sqrt((double)getNumOfPentominoes());
-        return getPentomino(rowIndex / N + columnIndex / N);
+        return getPentomino((rowIndex / N) * N + columnIndex / N); // integer calculation
     }
 
     public static void main(String[] args) {
