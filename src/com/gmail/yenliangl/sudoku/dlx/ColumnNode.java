@@ -1,7 +1,7 @@
 package com.gmail.yenliangl.sudoku.dlx;
 
 public class ColumnNode extends Node {
-    public int length;
+    private int mLength;
 
     public ColumnNode() {
         columnNode = this;
@@ -12,10 +12,22 @@ public class ColumnNode extends Node {
         n.up = this.up;
         this.up.down = n;
         this.up = n;
-        length++;
+        mLength++;
     }
 
-    public String toString() {
-        return "length = " + length;
+    public int getSize() {
+        return mLength;
     }
+
+    public void decrementSize() {
+        mLength--;
+    }
+
+    public void incrementSize() {
+        mLength++;
+    }
+
+    // public String toString() {
+    //     return "length = " + length;
+    // }
 }

@@ -122,10 +122,10 @@ public class Solver {
     private ColumnNode getColumnNodeWithFewestNodes(ColumnNode h) {
         ColumnNode result;
         int s = Integer.MAX_VALUE;
-        for(Node j = h.right; j != h; j = j.right) {
-            if(j.length < s) {
+        for(ColumnNode j = h.right; j != h; j = j.right) {
+            if(j.getSize() < s) {
                 result = j;
-                s = j.length;
+                s = j.getSize()
             }
         }
         return result;
@@ -143,7 +143,7 @@ public class Solver {
             for(Node j = i.left; j != i; j = j.right ) {
                 j.down.up = j.up;
                 j.up.down = j.down;
-                j.columnNode.length--;
+                j.columnNode.decrementSize();
             }
         }
         mListener.onCoverColumn(c);
@@ -157,7 +157,7 @@ public class Solver {
     private void uncoverColumn(ColumnNode c) {
         for(Node i = c.up; i !=c; i = i.up) {
             for(Node j = i.left; j != i; j = j.left) {
-                j.columnNode.length++;
+                j.columnNode.incrementSize();
                 j.down.up = j;
                 j.up.down = j;
             }

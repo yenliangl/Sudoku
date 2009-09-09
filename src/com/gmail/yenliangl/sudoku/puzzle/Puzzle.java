@@ -42,6 +42,10 @@ public abstract class Puzzle {
         return mColumns.size();
     }
 
+    public int getNumOfCells() {
+        return mCells.size();
+    }
+
     public int getNumOfPentominoes() {
         return mPentominoes.size();
     }

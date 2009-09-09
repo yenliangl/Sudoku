@@ -43,14 +43,18 @@ public class StandardPuzzle extends Puzzle {
     public static void main(String[] args) {
         // Make a 9x9 standard puzzle;
         StandardPuzzle puzzle = new StandardPuzzle(9);
-
-        System.out.format("Dimension of puzzle: %dx%d\n",
-                          puzzle.getDimension(),
-                          puzzle.getDimension());
+        System.out.format("Standard puzzle has 9 rows? %s\n",
+                          (puzzle.getNumOfRows() == 9));
+        System.out.format("Standard puzzle has 9 columns? %s\n",
+                          (puzzle.getNumOfColumns() == 9));
+        System.out.format("Standard puzzle has 9 pentominoes? %s\n",
+                          puzzle.getNumOfPentominoes() == 9);
+        System.out.format("Standard puzzle has 81 columns? %s\n",
+                          (puzzle.getNumOfCells() == 81));
+        System.out.format("Standard puzzle has dimension 9? %s\n",
+                          puzzle.getDimension() == 9);
 
         // Iterate rows
-        System.out.format("Iterate rows: %d rows\n",
-                          puzzle.getNumOfRows());
         Iterator<Row> rows = puzzle.getRows();
         while(rows.hasNext()) {
             Row row = rows.next();
@@ -64,8 +68,6 @@ public class StandardPuzzle extends Puzzle {
         }
 
         // Iterator pentominoes
-        System.out.format("Iterate pentominoes: %d pentomino\n",
-                          puzzle.getNumOfPentominoes());
         Iterator<Pentomino> pentominoes = puzzle.getPentominoes();
         while(pentominoes.hasNext()) {
             Pentomino p = pentominoes.next();

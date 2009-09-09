@@ -59,6 +59,13 @@ public class Matrix {
         return mColumnHeader.size();
     }
 
+    public int calculateRowIndex(final int row,
+                                 final int col,
+                                 final int value) {
+        final int dimension = mPuzzle.getDimension();
+        return row * dimension * dimension + col * dimension + value - 1;
+    }
+
     private int calculateSizeOfColumnHeader() {
         final int dimension = mPuzzle.getDimension();
 
@@ -96,10 +103,10 @@ public class Matrix {
     private void createNodes() {
         int nextStartColumnIndex = createRowColumnNodes();
 
-        nextStartColumnIndex = createRowNumberNodes(nextStartColumnIndex);
-        nextStartColumnIndex = createColumnNumberNodes(nextStartColumnIndex);
+        // nextStartColumnIndex = createRowNumberNodes(nextStartColumnIndex);
+        // nextStartColumnIndex = createColumnNumberNodes(nextStartColumnIndex);
 
-        createPentominoNumberNodes(nextStartColumnIndex);
+        // createPentominoNumberNodes(nextStartColumnIndex);
     }
 
     private int createRowColumnNodes() {
@@ -109,21 +116,18 @@ public class Matrix {
             Row row = rows.next();
             int rowIndex = row.getIndex();
 
-            Iterator<Column> columns = mPuzzle.getColumns();
-            while(columns.hasNext()) {
-                int columnIndex = columns.next().getIndex();
-                int columnNodeIndex = rowIndex * dimension +
-                                      columnIndex;
+            Iterator<Cell> cells = row.getCells();
+            while(cells.hasNext()) {
+                int columnIndex = cells.next().getColumnIndex();
+                int columnNodeIndex = rowIndex * dimension + columnIndex;
 
                 ColumnNode columnNode = getColumnNode(columnNodeIndex);
-
                 for(int value = 1; value <= 9; value++) {
                     Node node = new Node();
                     node.columnNode = columnNode;
-                    node.extra = calculateRowIndex(rowIndex,
-                                                   columnIndex,
+                    node.extra = calculateRowIndex(rowIndex, columnIndex,
                                                    value);
-
+                    columnNode.addNode(node);
                     addToRow(node);
                 }
             }
@@ -234,13 +238,6 @@ public class Matrix {
         return startColumnIndex + mPuzzle.getNumOfPentominoes() * 9;
     }
 
-    private int calculateRowIndex(final int row,
-                                  final int col,
-                                  final int value) {
-        final int dimension = mPuzzle.getDimension();
-        return row * dimension * dimension + col * dimension + value - 1;
-    }
-
     private void addToRow(Node node) {
         Node rootNode;
         try {
@@ -260,24 +257,59 @@ public class Matrix {
      * @param args
      */
     public static void main(String[] args) {
+        int numOfFails = 0;
 
         // Should only make sure that Matrix generates good DLX
         // matrix.
+        StandardPuzzle puzzle = new StandardPuzzle(9);
         Matrix matrix = new Matrix(new StandardPuzzle(9));
 
         // Start to check if the dancing links matrix is valid
-        System.out.println("Size of column header = " +
-                           matrix.getSizeOfColumnHeader());
+        if(matrix.getSizeOfColumnHeader() != 324) {
+            System.out.format("Check column header has 324 nodes? %s\n",
+                              matrix.getSizeOfColumnHeader() == 324);
+            numOfFails++;
+        }
 
         // Check Row-Column constraint nodes
-        ColumnNode columnNode = matrix.getColumnNode(0);
-        System.out.println("ColumnNode[0] = " + columnNode);
-        Node node;
-        int count = 0;
-        for(node = columnNode.down; node != columnNode; node = node.down) {
-            count++;
-            System.out.println("=====> node = " + node);
+        for(int i = 0; i < 9; i++) {
+            for(int j = 0; j < 9; j++) {
+                int columnNodeIndex = i * 9 + j;
+                ColumnNode columnNode = matrix.getColumnNode(columnNodeIndex);
+                if(columnNode.getSize() != 9) {
+                    System.out.format("Check column R%dC%d has 9 nodes? %s\n",
+                                      i+1, j+1, columnNode.getSize() == 9);
+                    numOfFails++;
+                }
+
+                Node node = columnNode.down;
+                for(int value=1; value <= 9; value++) {
+                    int rowNodeIndex = matrix.calculateRowIndex(i, j, value);
+                    Node rowNode = matrix.getRowNode(rowNodeIndex);
+                    if(rowNode != node) {
+                        System.out.format(
+                            "Check (R%dC%d#%d[%d],R%dC%d[%d]) has node? %s\n",
+                            i+1, j+1, value, rowNodeIndex,
+                            i+1, j+1, columnNodeIndex,
+                            (rowNode == node));
+                        numOfFails++;
+                    }
+                    node = node.down;
+                }
+            }
         }
-        System.out.println("Size of column node 0: " + count);
+
+        // Check Row-Number constraint nodes;
+
+
+
+
+
+        String className = matrix.getClass().getName();
+        if(numOfFails == 0) {
+            System.out.println(className + ": All checks passed!!!");
+        } else {
+            System.out.format("%s: %d checks failed", className, numOfFails);
+        }
     }
 }
