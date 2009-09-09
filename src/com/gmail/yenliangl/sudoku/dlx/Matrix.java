@@ -3,12 +3,21 @@ package com.gmail.yenliangl.sudoku.dlx;
 import com.gmail.yenliangl.sudoku.puzzle.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.regex.*;
 
 public class Matrix {
     private final Puzzle mPuzzle;
     private ColumnNode mRootColumnNode;
     private ArrayList<ColumnNode> mColumnHeader;
     private ArrayList<Node> mRowHeader;
+    private Listener mListener;
+
+    interface Listener {
+        void onCreateRowColumnNode(String row, String column);
+        void onCreateRowNumberNode(String row, String column);
+        void onCreateColumnNumberNode(String row, String column);
+        void onCreatePentominoNumberNode(String row, String column);
+    }
 
     /**
      * Create dancing links matrix from a sudoku puzzle.
@@ -22,6 +31,10 @@ public class Matrix {
 
         mRowHeader = new ArrayList<Node>();
         createNodes();
+    }
+
+    public void setListener(Listener listener) {
+        mListener = listener;
     }
 
     /**
@@ -101,12 +114,10 @@ public class Matrix {
     }
 
     private void createNodes() {
-        int nextStartColumnIndex = createRowColumnNodes();
-
-        // nextStartColumnIndex = createRowNumberNodes(nextStartColumnIndex);
-        // nextStartColumnIndex = createColumnNumberNodes(nextStartColumnIndex);
-
-        // createPentominoNumberNodes(nextStartColumnIndex);
+        int startColumnIndex = createRowColumnNodes();
+        startColumnIndex = createRowNumberNodes(startColumnIndex);
+        startColumnIndex = createColumnNumberNodes(startColumnIndex);
+        createPentominoNumberNodes(startColumnIndex);
     }
 
     private int createRowColumnNodes() {
@@ -129,6 +140,9 @@ public class Matrix {
                                                    value);
                     columnNode.addNode(node);
                     addToRow(node);
+                    // if(mListener) {
+                    //     mListener.onCreateRowColumnNode();
+                    // }
                 }
             }
         }
@@ -144,25 +158,27 @@ public class Matrix {
             Row row = rows.next();
             int rowIndex = row.getIndex();
 
-            Iterator<Column> columns = mPuzzle.getColumns();
-            while(columns.hasNext()) {
-                Column column = columns.next();
-                int columnIndex = column.getIndex();
+            Iterator<Cell> cells = row.getCells();
+            while(cells.hasNext()) {
+                int columnIndex = cells.next().getColumnIndex();
 
                 for(int value = 1; value <= 9; value++) {
-                    int rowNodeIndex = calculateRowIndex(rowIndex,
-                                                         columnIndex,
-                                                         value);
-
                     int columnNodeIndex = rowIndex * dimension +
                                           (value - 1) +
                                           startColumnNodeIndex;
 
                     Node node = new Node();
-                    node.columnNode = getColumnNode(columnNodeIndex);;
-                    node.extra = rowNodeIndex;
+                    node.columnNode = getColumnNode(columnNodeIndex);
+                    node.extra = calculateRowIndex(rowIndex,
+                                                         columnIndex,
+                                                         value);
                     node.columnNode.addNode(node);
                     addToRow(node);
+
+                    // System.out.format(
+                    //     "Add node to (R%dC%d#%d[%d],R%d#%d[%d,%s])\n",
+                    //     rowIndex+1, columnIndex+1, value, node.extra,
+                    //     rowIndex+1, value, columnNodeIndex, node.columnNode);
                 }
             }
         }
@@ -178,10 +194,9 @@ public class Matrix {
             Row row = rows.next();
             int rowIndex = row.getIndex();
 
-            Iterator<Column> columns = mPuzzle.getColumns();
-            while(columns.hasNext()) {
-                Column column = columns.next();
-                int columnIndex = column.getIndex();
+            Iterator<Cell> cells = row.getCells();
+            while(cells.hasNext()) {
+                int columnIndex = cells.next().getColumnIndex();
 
                 for(int value = 1; value <= 9; value++) {
                     int rowNodeIndex = calculateRowIndex(rowIndex,
@@ -198,6 +213,11 @@ public class Matrix {
                     node.extra = rowNodeIndex;
                     node.columnNode.addNode(node);
                     addToRow(node);
+
+                    // System.out.format(
+                    //     "Add node to (R%dC%d#%d[%d],C%d#%d[%d,%s])\n",
+                    //     rowIndex+1, columnIndex+1, value, node.extra,
+                    //     columnIndex+1, value, columnNodeIndex, node.columnNode);
                 }
             }
         }
@@ -205,7 +225,7 @@ public class Matrix {
         return startColumnNodeIndex + dimension * 9;
     }
 
-    private int createPentominoNumberNodes(final int startColumnIndex) {
+    private int createPentominoNumberNodes(final int startColumnNodeIndex) {
         final int dimension = mPuzzle.getDimension();
 
         Iterator<Row> rows = mPuzzle.getRows();
@@ -213,18 +233,17 @@ public class Matrix {
             Row row = rows.next();
             int rowIndex = row.getIndex();
 
-            Iterator<Column> columns = mPuzzle.getColumns();
-            while(columns.hasNext()) {
-                Column column = columns.next();
-                int columnIndex = column.getIndex();
+            Iterator<Cell> cells = row.getCells();
+            while(cells.hasNext()) {
+                int columnIndex = cells.next().getColumnIndex();
 
                 for(int value = 1; value <= 9; value++) {
                     int rowNodeIndex = calculateRowIndex(rowIndex,
                                                          columnIndex,
                                                          value);
                     int columnNodeIndex =
-                        mPuzzle.getPentomino(rowIndex, columnIndex).getIndex() * dimension +
-                        value - 1;
+                        mPuzzle.getPentomino(rowIndex, columnIndex).getIndex() * dimension + value - 1 + startColumnNodeIndex;
+
                     ColumnNode columnNode = getColumnNode(columnNodeIndex);
 
                     Node node = new Node();
@@ -232,10 +251,16 @@ public class Matrix {
                     node.extra = rowNodeIndex;
                     node.columnNode.addNode(node);
                     addToRow(node);
+
+                    // System.out.format(
+                    //     "Add node to (R%dC%d#%d[%d],B%d#%d[%d,%s])\n",
+                    //     rowIndex+1, columnIndex+1, value, node.extra,
+                    //     mPuzzle.getPentomino(rowIndex,columnIndex).getIndex()+1,
+                    //     value, columnNodeIndex, node.columnNode);
                 }
             }
         }
-        return startColumnIndex + mPuzzle.getNumOfPentominoes() * 9;
+        return startColumnNodeIndex + mPuzzle.getNumOfPentominoes() * 9;
     }
 
     private void addToRow(Node node) {
@@ -299,11 +324,9 @@ public class Matrix {
             }
         }
 
-        // Check Row-Number constraint nodes;
-
-
-
-
+        // @todo: Check Row-Number constraint nodes;
+        // @todo: Check Column-Number constraint nodes;
+        // @todo: Check Box-Number constraint nodes;
 
         String className = matrix.getClass().getName();
         if(numOfFails == 0) {
