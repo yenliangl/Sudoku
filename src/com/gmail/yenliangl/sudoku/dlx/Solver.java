@@ -29,11 +29,6 @@ public class Solver {
         }
     }
 
-    /**
-     *
-     *
-     * @param puzzle
-     */
     public void solve(Puzzle puzzle, Puzzle answer) {
         Matrix matrix = new Matrix(puzzle);
 
@@ -54,19 +49,9 @@ public class Solver {
                     matrix.calculateRowNodeIndex(rowIndex,
                                                  columnIndex,
                                                  value);
-
-                // System.out.format("Add R%dC%d#%d[%d] to solution\n",
-                //                   cell.getRowIndex() + 1,
-                //                   cell.getColumnIndex() + 1, value,
-                //                   rowNodeIndex);
-
                 addRowNodeToSolution(matrix, rowNodeIndex, solution);
             }
         }
-
-        System.out.println(
-            "Number of solutions = " + solution.size());
-
 
         if(solve(matrix, 0, solution)) {
             generateAnswer(solution, answer);
@@ -75,18 +60,11 @@ public class Solver {
         }
     }
 
-    /**
-     *
-     *
-     * @param matrix
-     * @param k
-     * @param solution
-     *
-     * @return
-     */
     private boolean solve(Matrix matrix, int k, Stack<Node> solution) {
         ColumnNode h = matrix.getRootColumnNode();
         if(h.right == h) {
+            // TODO: Found a solution. Prints the solution and goes on
+            // to find another possible solution?
             return true;
         }
 
@@ -105,6 +83,8 @@ public class Solver {
                 return true;
             }
 
+            solve(matrix, k+1, solution);
+
             r = solution.pop();
             mListener.onPopRowFromSoluton(r);
 
@@ -118,13 +98,6 @@ public class Solver {
         return false;
     }
 
-    /**
-     *
-     *
-     * @param matrix
-     * @param rowIndex
-     * @param solution
-     */
     private void addRowNodeToSolution(Matrix matrix,
                                       final int rowNodeIndex,
                                       Stack<Node> solution) {
@@ -138,13 +111,6 @@ public class Solver {
         mListener.onPushRowToSolution(start);
     }
 
-    /**
-     *
-     *
-     * @param h
-     *
-     * @return
-     */
     private ColumnNode getColumnNodeWithFewestNodes(ColumnNode h) {
         ColumnNode result = (ColumnNode)h.right;
         int s = Integer.MAX_VALUE;
@@ -158,11 +124,6 @@ public class Solver {
         return result;
     }
 
-    /**
-     * Cover the column from column node @p c.
-     *
-     * @param c Column node.
-     */
     private void coverColumn(ColumnNode c) {
         c.right.left = c.left;
         c.left.right = c.right;
@@ -176,11 +137,6 @@ public class Solver {
         mListener.onCoverColumn(c);
     }
 
-    /**
-     * Uncover the column represented by column node @c c
-     *
-     * @param c Column node.
-     */
     private void uncoverColumn(ColumnNode c) {
         for(Node i = c.up; i != c; i = i.up) {
             for(Node j = i.left; j != i; j = j.left) {
@@ -194,48 +150,24 @@ public class Solver {
         mListener.onUncoverColumn(c);
     }
 
-    /**
-     *
-     *
-     * @param solutionStack
-     */
-    private void generateAnswer(Stack<Node> solutionStack, Puzzle answer) {
-        System.out.println("=== Generating answer of the puzzle ===");
-
+    private void generateAnswer(Stack<Node> solutionStack,
+                                Puzzle answer) {
         Iterator<Node> nodes = solutionStack.iterator();
         while(nodes.hasNext()) {
             Node node = nodes.next();
-            Cell cell = answer.getCell(node.rowIndex, node.columnIndex);
+            Cell cell = answer.getCell(node.rowIndex,
+                                       node.columnIndex);
             cell.setValue(node.value);
-
-            System.out.format("R%dC%d#%d\n",
-                              cell.getRowIndex()+1,
-                              cell.getColumnIndex()+1,
-                              cell.getValue());
         }
         mListener.onSolved(answer);
     }
 
-    /**
-     *
-     *
-     */
     public static void main(String[] args) {
         Solver solver = new Solver(
             new Solver.Listener() {
                 @Override
                 public void onSolved(Puzzle answer) {
-                    Iterator<Row> rows = answer.getRows();
-                    while(rows.hasNext()) {
-                        Row row = rows.next();
-
-                        Iterator<Cell> cells = row.getCells();
-                        while(cells.hasNext()) {
-                            Cell cell = cells.next();
-                            System.out.format("%d ", cell.getValue());
-                        }
-                        System.out.println("");
-                    }
+                    System.out.println(answer);
                     System.out.println("!!!Puzzle solved!!!!");
                 }
 
@@ -244,15 +176,13 @@ public class Solver {
                     System.out.println("!!!Puzzle unsolved!!!!");
                 }
 
-                public void onCoverColumn(ColumnNode c) {
-                    System.out.println("coverColumn(" + c + ")");
-                }
-                public void onUncoverColumn(ColumnNode c) {
-                    // System.out.println("uncoverColumn(" + c + ")");
-                }
+                public void onCoverColumn(ColumnNode c) {}
+                public void onUncoverColumn(ColumnNode c) {}
                 public void onPushRowToSolution(Node r) {}
                 public void onPopRowFromSoluton(Node r) {}
             });
+
+        // Generate a random sudoku.
         StandardPuzzle answer = new StandardPuzzle(9);
         // solver.solve(new StandardPuzzle(9), answer);
 
@@ -263,7 +193,7 @@ public class Solver {
                          //------------------------//
                          {9, 2, 0, 0, 0, 0, 0, 4, 0},
                          {0, 0, 0, 7, 0, 5, 0, 0, 0},
-                         {0, 5, 0, 4, 0, 0, 0, 6, 3},
+                         {0, 5, 0, 0, 0, 0, 0, 6, 3},
                          //------------------------//
                          {0, 0, 0, 0, 1, 0, 2, 3, 0},
                          {0, 0, 0, 0, 6, 0, 9, 0, 8},

@@ -19,12 +19,6 @@ public class Matrix {
         void onCreatePentominoNumberNode(String row, String column);
     }
 
-    /**
-     * Create dancing links matrix from a sudoku puzzle.
-     *
-     * @param puzzle
-     *
-     */
     public Matrix(final Puzzle puzzle) {
         mPuzzle = puzzle;
         createColumnHeader();
@@ -37,39 +31,28 @@ public class Matrix {
         mListener = listener;
     }
 
-    /**
-     * Return root node of column header.
-     *
-     * @return ColumnNode
-     */
     public ColumnNode getRootColumnNode() {
         return mRootColumnNode;
     }
 
-    /**
-     * Return a column node in column header from its index.
-     *
-     * @param index
-     *
-     * @return
-     */
     public ColumnNode getColumnNode(int index) {
         return mColumnHeader.get(index);
     }
 
-    /**
-     *
-     *
-     * @param index
-     *
-     * @return
-     */
-    public Node getRowNode(int index) {
-        return mRowHeader.get(index);
+    public int getColumnNodeIndex(ColumnNode columnNode) {
+        return mColumnHeader.lastIndexOf(columnNode);
     }
 
     public int getSizeOfColumnHeader() {
         return mColumnHeader.size();
+    }
+
+    public Node getRowNode(int index) {
+        return mRowHeader.get(index);
+    }
+
+    public int getRowNodeIndex(Node rowNode) {
+        return mRowHeader.lastIndexOf(rowNode);
     }
 
     public int calculateRowNodeIndex(final int row,
@@ -287,11 +270,6 @@ public class Matrix {
         }
     }
 
-    /**
-     *
-     *
-     * @param args
-     */
     public static void main(String[] args) {
         int numOfFails = 0;
 

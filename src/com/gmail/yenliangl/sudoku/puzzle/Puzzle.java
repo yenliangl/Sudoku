@@ -77,6 +77,23 @@ public abstract class Puzzle {
 
     public abstract Pentomino getPentomino(int rowIndex, int columnIndex);
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Iterator<Row> rows = getRows();
+        while(rows.hasNext()) {
+            Row row = rows.next();
+
+            Iterator<Cell> cells = row.getCells();
+            while(cells.hasNext()) {
+                Cell cell = cells.next();
+                sb.append(cell.getValue());
+                sb.append(" ");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
     protected abstract void createPentominoes(ArrayList<Pentomino> pentominoes, final int dimension);
 
     protected Pentomino getPentomino(int index) {
