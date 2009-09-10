@@ -102,8 +102,7 @@ public abstract class Puzzle {
             mRows.add(row);
 
             for(int c = 0; c < dimension; c++) {
-                int index = r * dimension + c;
-                row.addCell(mCells.get(index));
+                row.addCell(mCells.get(calculateCellIndex(r, c)));
             }
         }
     }
@@ -116,8 +115,7 @@ public abstract class Puzzle {
             mColumns.add(column);
 
             for(int r = 0; r < dimension; r++) {
-                int index = r * dimension + c;
-                column.addCell(mCells.get(index));
+                column.addCell(mCells.get(calculateCellIndex(r, c)));
             }
         }
     }

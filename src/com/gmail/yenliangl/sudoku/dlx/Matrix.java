@@ -72,9 +72,9 @@ public class Matrix {
         return mColumnHeader.size();
     }
 
-    public int calculateRowIndex(final int row,
-                                 final int col,
-                                 final int value) {
+    public int calculateRowNodeIndex(final int row,
+                                     final int col,
+                                     final int value) {
         final int dimension = mPuzzle.getDimension();
         return row * dimension * dimension + col * dimension + value - 1;
     }
@@ -134,9 +134,9 @@ public class Matrix {
 
                 ColumnNode columnNode = getColumnNode(columnNodeIndex);
                 for(int value = 1; value <= 9; value++) {
-                    int rowNodeIndex = calculateRowIndex(rowIndex,
-                                                         columnIndex,
-                                                         value);
+                    int rowNodeIndex = calculateRowNodeIndex(rowIndex,
+                                                             columnIndex,
+                                                             value);
                     Node node = new Node();
                     node.columnNode = columnNode;
                     node.rowIndex = rowIndex;
@@ -167,9 +167,9 @@ public class Matrix {
                 int columnIndex = cells.next().getColumnIndex();
 
                 for(int value = 1; value <= 9; value++) {
-                    int rowNodeIndex = calculateRowIndex(rowIndex,
-                                                         columnIndex,
-                                                         value);
+                    int rowNodeIndex = calculateRowNodeIndex(rowIndex,
+                                                             columnIndex,
+                                                             value);
                     int columnNodeIndex = rowIndex * dimension +
                                           (value - 1) +
                                           startColumnNodeIndex;
@@ -206,9 +206,9 @@ public class Matrix {
                 int columnIndex = cells.next().getColumnIndex();
 
                 for(int value = 1; value <= 9; value++) {
-                    int rowNodeIndex = calculateRowIndex(rowIndex,
-                                                         columnIndex,
-                                                         value);
+                    int rowNodeIndex = calculateRowNodeIndex(rowIndex,
+                                                             columnIndex,
+                                                             value);
 
                     int columnNodeIndex = columnIndex * dimension +
                                           (value - 1) +
@@ -247,9 +247,9 @@ public class Matrix {
                 int columnIndex = cells.next().getColumnIndex();
 
                 for(int value = 1; value <= 9; value++) {
-                    int rowNodeIndex = calculateRowIndex(rowIndex,
-                                                         columnIndex,
-                                                         value);
+                    int rowNodeIndex = calculateRowNodeIndex(rowIndex,
+                                                             columnIndex,
+                                                             value);
                     int columnNodeIndex =
                         mPuzzle.getPentomino(rowIndex, columnIndex).getIndex() * dimension + value - 1 + startColumnNodeIndex;
 
@@ -320,7 +320,7 @@ public class Matrix {
 
                 Node node = columnNode.down;
                 for(int value=1; value <= 9; value++) {
-                    int rowNodeIndex = matrix.calculateRowIndex(i, j, value);
+                    int rowNodeIndex = matrix.calculateRowNodeIndex(i, j, value);
                     Node rowNode = matrix.getRowNode(rowNodeIndex);
                     if(rowNode != node) {
                         System.out.format(

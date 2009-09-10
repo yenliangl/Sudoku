@@ -25,9 +25,9 @@ public class Cell {
             return;
         }
 
-        if((value != mValue) && (mValueChangedListener != null)) {
+        mValue = value;
+        if(mValueChangedListener != null) {
             mValueChangedListener.onValueChanged(mValue, value);
-            mValue = value;
         }
     }
 

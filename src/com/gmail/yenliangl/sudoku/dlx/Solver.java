@@ -24,7 +24,9 @@ public class Solver {
     }
 
     public void setListener(Listener listener) {
-        mListener = listener;
+        if(listener != null) {
+            mListener = listener;
+        }
     }
 
     /**
@@ -32,31 +34,45 @@ public class Solver {
      *
      * @param puzzle
      */
-    public void solve(Puzzle puzzle) {
-
-        System.out.println("solve(puzzle)");
-
+    public void solve(Puzzle puzzle, Puzzle answer) {
         Matrix matrix = new Matrix(puzzle);
 
         int dimension = puzzle.getDimension();
         Stack<Node> solution = new Stack<Node>();
         solution.ensureCapacity(dimension * dimension);
 
-        // Extract solved cells in the puzzle and add them into DLX
-        // matrix as solved rows;
+        // Get solved cells in the puzzle and add them into DLX
+        // matrix as solved rows
         Iterator<Cell> allCells = puzzle.getCells();
         while(allCells.hasNext()) {
             Cell cell = allCells.next();
             int value = cell.getValue();
             if(value != 0) {    // This is a solved cell.
-                int r = cell.getRowIndex(), c = cell.getColumnIndex();
-                int rowNodeIndex = r * dimension * dimension +
-                                   c * dimension + value - 1;
-                addRowToSolution(matrix, rowNodeIndex, solution);
+                int rowIndex = cell.getRowIndex();
+                int columnIndex = cell.getColumnIndex();
+                int rowNodeIndex =
+                    matrix.calculateRowNodeIndex(rowIndex,
+                                                 columnIndex,
+                                                 value);
+
+                // System.out.format("Add R%dC%d#%d[%d] to solution\n",
+                //                   cell.getRowIndex() + 1,
+                //                   cell.getColumnIndex() + 1, value,
+                //                   rowNodeIndex);
+
+                addRowNodeToSolution(matrix, rowNodeIndex, solution);
             }
         }
 
-        solve(matrix, 0, solution); // k = 0
+        System.out.println(
+            "Number of solutions = " + solution.size());
+
+
+        if(solve(matrix, 0, solution)) {
+            generateAnswer(solution, answer);
+        } else {
+            mListener.onUnsolved();
+        }
     }
 
     /**
@@ -71,7 +87,6 @@ public class Solver {
     private boolean solve(Matrix matrix, int k, Stack<Node> solution) {
         ColumnNode h = matrix.getRootColumnNode();
         if(h.right == h) {
-            generateAnswer(solution);
             return true;
         }
 
@@ -100,8 +115,6 @@ public class Solver {
         }
         uncoverColumn(c);
 
-        mListener.onUnsolved();
-
         return false;
     }
 
@@ -112,13 +125,15 @@ public class Solver {
      * @param rowIndex
      * @param solution
      */
-    private void addRowToSolution(Matrix matrix,
-                                  final int rowIndex,
-                                  Stack<Node> solution) {
-        Node start = matrix.getRowNode(rowIndex);
-        for(Node n = start; n != start; n=n.right) {
-            coverColumn(n.columnNode);
-        }
+    private void addRowNodeToSolution(Matrix matrix,
+                                      final int rowNodeIndex,
+                                      Stack<Node> solution) {
+        Node start = matrix.getRowNode(rowNodeIndex);
+        Node node = start;
+        do {
+            coverColumn(node.columnNode);
+            node = node.right;
+        } while(node != start);
         solution.push(start);
         mListener.onPushRowToSolution(start);
     }
@@ -133,7 +148,8 @@ public class Solver {
     private ColumnNode getColumnNodeWithFewestNodes(ColumnNode h) {
         ColumnNode result = (ColumnNode)h.right;
         int s = Integer.MAX_VALUE;
-        for(ColumnNode j = (ColumnNode)h.right; j != h; j = (ColumnNode)j.right) {
+        for(ColumnNode j = (ColumnNode)h.right;
+            j != h; j = (ColumnNode)j.right) {
             if(j.getSize() < s) {
                 result = j;
                 s = j.getSize();
@@ -183,17 +199,21 @@ public class Solver {
      *
      * @param solutionStack
      */
-    private void generateAnswer(Stack<Node> solutionStack) {
-        StandardPuzzle answer = new StandardPuzzle( 9 /* @todo */ );
-        mListener.onSolved(answer);
+    private void generateAnswer(Stack<Node> solutionStack, Puzzle answer) {
+        System.out.println("=== Generating answer of the puzzle ===");
 
         Iterator<Node> nodes = solutionStack.iterator();
         while(nodes.hasNext()) {
             Node node = nodes.next();
+            Cell cell = answer.getCell(node.rowIndex, node.columnIndex);
+            cell.setValue(node.value);
+
             System.out.format("R%dC%d#%d\n",
-                              node.rowIndex+1, node.columnIndex+1,
-                              node.value);
+                              cell.getRowIndex()+1,
+                              cell.getColumnIndex()+1,
+                              cell.getValue());
         }
+        mListener.onSolved(answer);
     }
 
     /**
@@ -201,38 +221,53 @@ public class Solver {
      *
      */
     public static void main(String[] args) {
-        // StandardPuzzle puzzle = new StandardPuzzle(
-        //     new int[][] {{4, 0, 0, 3, 0, 1, 0, 8, 0},
-        //                  {6, 0, 1, 0, 2, 0, 0, 0, 0},
-        //                  {0, 3, 9, 0, 7, 0, 0, 0, 0},
-        //                  //------------------------//
-        //                  {9, 2, 0, 0, 0, 0, 0, 4, 0},
-        //                  {0, 0, 0, 7, 0, 5, 0, 0, 0},
-        //                  {0, 5, 0, 4, 0, 0, 0, 6, 3},
-        //                  //------------------------//
-        //                  {0, 0, 0, 0, 1, 0, 2, 3, 0},
-        //                  {0, 0, 0, 0, 6, 0, 9, 0, 8},
-        //                  {0, 1, 0, 9, 0, 8, 0, 0, 5}});
         Solver solver = new Solver(
             new Solver.Listener() {
                 @Override
                 public void onSolved(Puzzle answer) {
-                    System.out.println("Puzzle solved");
+                    Iterator<Row> rows = answer.getRows();
+                    while(rows.hasNext()) {
+                        Row row = rows.next();
+
+                        Iterator<Cell> cells = row.getCells();
+                        while(cells.hasNext()) {
+                            Cell cell = cells.next();
+                            System.out.format("%d ", cell.getValue());
+                        }
+                        System.out.println("");
+                    }
+                    System.out.println("!!!Puzzle solved!!!!");
                 }
 
                 @Override
                 public void onUnsolved() {
+                    System.out.println("!!!Puzzle unsolved!!!!");
                 }
 
                 public void onCoverColumn(ColumnNode c) {
                     System.out.println("coverColumn(" + c + ")");
                 }
                 public void onUncoverColumn(ColumnNode c) {
-                    System.out.println("uncoverColumn(" + c + ")");
+                    // System.out.println("uncoverColumn(" + c + ")");
                 }
                 public void onPushRowToSolution(Node r) {}
                 public void onPopRowFromSoluton(Node r) {}
             });
-        solver.solve(new StandardPuzzle(9));
+        StandardPuzzle answer = new StandardPuzzle(9);
+        // solver.solve(new StandardPuzzle(9), answer);
+
+        StandardPuzzle puzzle = new StandardPuzzle(
+            new int[][] {{4, 0, 0, 3, 0, 1, 0, 8, 0},
+                         {6, 0, 1, 0, 2, 0, 0, 0, 0},
+                         {0, 3, 9, 0, 7, 0, 0, 0, 0},
+                         //------------------------//
+                         {9, 2, 0, 0, 0, 0, 0, 4, 0},
+                         {0, 0, 0, 7, 0, 5, 0, 0, 0},
+                         {0, 5, 0, 4, 0, 0, 0, 6, 3},
+                         //------------------------//
+                         {0, 0, 0, 0, 1, 0, 2, 3, 0},
+                         {0, 0, 0, 0, 6, 0, 9, 0, 8},
+                         {0, 1, 0, 9, 0, 8, 0, 0, 5}});
+        solver.solve(puzzle, answer);
     }
 }
