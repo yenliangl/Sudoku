@@ -39,6 +39,20 @@ public class Matrix {
         return mColumnHeader.get(index);
     }
 
+    public ColumnNode danceToColumnNode(int steps) {
+        ColumnNode root = getRootColumnNode();
+        Node node = root.right;
+        int count = 0;
+        while (node != root) {
+            count++;
+            if(count > steps) {
+                break;
+            }
+            node = node.right;
+        }
+        return (ColumnNode)node;
+    }
+
     public int getColumnNodeIndex(ColumnNode columnNode) {
         return mColumnHeader.lastIndexOf(columnNode);
     }
