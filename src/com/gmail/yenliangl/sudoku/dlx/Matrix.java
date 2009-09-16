@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.regex.*;
 
-public class Matrix {
+class Matrix {
     private final Puzzle mPuzzle;
     private ColumnNode mRootColumnNode;
     private ArrayList<ColumnNode> mColumnHeader;

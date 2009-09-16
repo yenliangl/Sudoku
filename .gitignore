@@ -1,4 +1,4 @@
-*/gen
-*/bin
-*/R.java
+gen
+bin
 *.class
+local.properties

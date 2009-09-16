@@ -9,15 +9,12 @@ import com.gmail.yenliangl.sudoku.puzzle.*;
 
 public class Solver {
     public interface Listener {
-        void onSolved(Puzzle answer);
-        void onUnsolved();
-        void onCoverColumn(ColumnNode c);
-        void onUncoverColumn(ColumnNode c);
-        void onPushRowToSolution(Node r);
-        void onPopRowFromSoluton(Node r);
+        void onBegin();
+        void onSolved(int[][] answer);
+        void onEnd();
     }
 
-    public interface SelectColumnNodeStrategy {
+    interface SelectColumnNodeStrategy {
         ColumnNode select(Matrix matrix);
     }
 
@@ -28,11 +25,11 @@ public class Solver {
         mListener = listener;
     }
 
-    public void setStrategy(SelectColumnNodeStrategy strategy) {
+    void setStrategy(SelectColumnNodeStrategy strategy) {
         mStrategy = strategy;
     }
 
-    public boolean solve(Puzzle puzzle, Puzzle answer) {
+    public void solve(Puzzle puzzle) {
         if(mListener == null) {
             mListener = createDefaultListener();
         }
@@ -40,6 +37,8 @@ public class Solver {
         if(mStrategy == null) {
             mStrategy = createDefaultStrategy();
         }
+
+        mListener.onBegin();
 
         Matrix matrix = new Matrix(puzzle);
 
@@ -64,22 +63,16 @@ public class Solver {
             }
         }
 
-        if(solve(matrix, 0, solution)) {
-            generateAnswer(solution, answer);
-            return true;
-        }
-        mListener.onUnsolved();
-        return false;
+        solve(matrix, 0, solution);
+
+        mListener.onEnd();
     }
 
     private Listener createDefaultListener() {
         return new Listener() {
-            public void onSolved(Puzzle answer) {}
-            public void onUnsolved() {}
-            public void onCoverColumn(ColumnNode c) {}
-            public void onUncoverColumn(ColumnNode c) {}
-            public void onPushRowToSolution(Node r) {}
-            public void onPopRowFromSoluton(Node r) {}
+            public void onBegin() {}
+            public void onSolved(int[][] answer) {}
+            public void onEnd() {}
         };
     }
 
@@ -103,12 +96,11 @@ public class Solver {
         };
     }
 
-    private boolean solve(Matrix matrix, int k, Stack<Node> solution) {
+    private void solve(Matrix matrix, int k, Stack<Node> solution) {
         ColumnNode h = matrix.getRootColumnNode();
         if(h.right == h) {
-            // TODO: Found a solution. Prints the solution and goes on
-            // to find another possible solution?
-            return true;
+            generateAnswer(solution);
+            return;
         }
 
         ColumnNode c = mStrategy.select(matrix);
@@ -116,20 +108,14 @@ public class Solver {
 
         for(Node r = c.down; r != c; r = r.down) {
             solution.push(r);
-            mListener.onPushRowToSolution(r);
 
             for(Node j = r.right; j != r; j = j.right) {
                 coverColumn(j.columnNode);
             }
 
-            if(solve(matrix, k+1, solution)) {
-                return true;
-            }
-
             solve(matrix, k+1, solution);
 
             r = solution.pop();
-            mListener.onPopRowFromSoluton(r);
 
             c = r.columnNode;
             for(Node j = r.left; j != r; j = j.left) {
@@ -137,8 +123,6 @@ public class Solver {
             }
         }
         uncoverColumn(c);
-
-        return false;
     }
 
     private void addRowNodeToSolution(Matrix matrix,
@@ -151,7 +135,6 @@ public class Solver {
             node = node.right;
         } while(node != start);
         solution.push(start);
-        mListener.onPushRowToSolution(start);
     }
 
     private void coverColumn(ColumnNode c) {
@@ -164,7 +147,6 @@ public class Solver {
                 j.columnNode.decrementSize();
             }
         }
-        mListener.onCoverColumn(c);
     }
 
     private void uncoverColumn(ColumnNode c) {
@@ -177,44 +159,52 @@ public class Solver {
         }
         c.right.left = c;
         c.left.right = c;
-
-        mListener.onUncoverColumn(c);
     }
 
-    private void generateAnswer(Stack<Node> solutionStack,
-                                Puzzle answer) {
+    private int[][] generateAnswer(Stack<Node> solutionStack) {
+        int dimension = (int)Math.sqrt(solutionStack.size());
+        int[][] result = new int[dimension][dimension];
+
         Iterator<Node> nodes = solutionStack.iterator();
         while(nodes.hasNext()) {
             Node node = nodes.next();
-            Cell cell = answer.getCell(node.rowIndex,
-                                       node.columnIndex);
-            cell.setValue(node.value);
+            result[node.rowIndex][node.columnIndex] = node.value;
         }
+        mListener.onSolved(result);
 
-        mListener.onSolved(answer);
+        return result;
     }
 
     public static void main(String[] args) {
         Solver solver = new Solver();
         solver.setListener(new Solver.Listener() {
+                private int mNumOfSolutions;
+
                 @Override
-                public void onSolved(Puzzle answer) {
-                    System.out.println(answer);
-                    System.out.println("!!!Puzzle solved!!!!");
+                public void onBegin() {
+                    mNumOfSolutions = 0;
                 }
 
                 @Override
-                public void onUnsolved() {
-                    System.out.println("!!!Puzzle unsolved!!!!");
+                public void onSolved(int[][] answer) {
+                    mNumOfSolutions++;
+                    System.out.println("!!!Puzzle solved! " + mNumOfSolutions + " solutions found!!!");
+                    for(int i = 0; i < answer.length; i++) {
+                        for(int j = 0; j < answer[0].length; j++) {
+                            System.out.format("%d ", answer[i][j]);
+                        }
+                        System.out.println("");
+                    }
                 }
 
-                public void onCoverColumn(ColumnNode c) {}
-                public void onUncoverColumn(ColumnNode c) {}
-                public void onPushRowToSolution(Node r) {}
-                public void onPopRowFromSoluton(Node r) {}
+                @Override
+                public void onEnd() {
+                    if(mNumOfSolutions == 0) {
+                        System.out.println("!!!No solution!!!");
+                    }
+                }
             });
 
-        StandardPuzzle answer = new StandardPuzzle(9);
         StandardPuzzle puzzle = new StandardPuzzle(
             new int[][] {{4, 0, 0, 3, 0, 1, 0, 8, 0},
                          {6, 0, 1, 0, 2, 0, 0, 0, 0},
@@ -227,7 +217,7 @@ public class Solver {
                          {0, 0, 0, 0, 1, 0, 2, 3, 0},
                          {0, 0, 0, 0, 6, 0, 9, 0, 8},
                          {0, 1, 0, 9, 0, 8, 0, 0, 5}});
-        solver.solve(puzzle, answer);
+        solver.solve(puzzle);
 
         puzzle = new StandardPuzzle(
             new int[][] {{0, 5, 3, 0, 2, 0, 0, 0, 0},
@@ -241,51 +231,21 @@ public class Solver {
                          {8, 0, 0, 0, 0, 5, 0, 2, 0},
                          {2, 0, 9, 1, 0, 0, 0, 0, 0},
                          {0, 0, 0, 0, 3, 0, 9, 8, 0}});
-        solver.solve(puzzle, answer);
+        solver.solve(puzzle);
 
-        // Generate random sudoku by customizing the strategy of
-        // column node selection.
+        puzzle = new StandardPuzzle(
+            new int[][] {{0, 5, 3, 0, 0, 0, 0, 0, 0},
+                         {0, 0, 0, 0, 0, 9, 4, 0, 0},
+                         {0, 6, 0, 7, 0, 0, 0, 0, 3},
+                         //------------------------//
+                         {0, 8, 0, 0, 7, 0, 6, 0, 0},
+                         {4, 0, 0, 8, 0, 3, 0, 0, 0},
+                         {0, 0, 5, 0, 9, 0, 0, 4, 0},
+                         //------------------------//
+                         {8, 0, 0, 0, 0, 0, 0, 2, 0},
+                         {2, 0, 9, 1, 0, 0, 0, 0, 0},
+                         {0, 0, 0, 0, 3, 0, 9, 8, 0}});
+        solver.solve(puzzle);
 
-        // Always first column node strategy.
-        solver.setStrategy(new SelectColumnNodeStrategy() {
-                @Override
-                public ColumnNode select(Matrix matrix) {
-                    return (ColumnNode)matrix.getRootColumnNode().right;
-                }
-            });
-        solver.solve(new StandardPuzzle(9), answer);
-
-        // Walk 5-steps column node strategy
-        class RandomStepsStrategy implements SelectColumnNodeStrategy {
-            private int mSteps;
-
-            RandomStepsStrategy(int maxSteps) {
-                Random rand = new Random();
-                mSteps = rand.nextInt(maxSteps);
-
-                // @note Magic number 7 makes it unable to generate
-                // puzzle and CPU loading is jumping high. I don't
-                // know why!
-                System.out.println("Random steps : " + mSteps);
-            }
-
-            @Override
-            public ColumnNode select(Matrix matrix) {
-                ColumnNode root = matrix.getRootColumnNode();
-                int count = 0;
-                ColumnNode selectedNode = (ColumnNode)root.getRight();
-                for(ColumnNode j = (ColumnNode)root.getRight();
-                    j != root; j = (ColumnNode)j.getRight()) {
-                    selectedNode = j;
-                    if (count > mSteps) {
-                        break;
-                    }
-                    count++;
-                }
-                return selectedNode;
-            }
-        }
-        solver.setStrategy(new RandomStepsStrategy(10)); // 7 is evil.
-        solver.solve(new StandardPuzzle(9), answer);
     }
 }

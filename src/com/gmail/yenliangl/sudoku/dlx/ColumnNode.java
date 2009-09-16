@@ -1,6 +1,7 @@
 package com.gmail.yenliangl.sudoku.dlx;
 
-public class ColumnNode extends Node {
+// public class ColumnNode extends Node {
+class ColumnNode extends Node {
     private int mLength;
 
     public ColumnNode() {
