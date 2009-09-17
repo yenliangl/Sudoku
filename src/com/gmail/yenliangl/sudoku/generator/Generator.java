@@ -1,11 +1,7 @@
 package com.gmail.yenliangl.sudoku.generator;
 
-interface Generator {
-    interface Listener {
-        void onBegin();
-        void onGenerated();
-        void onEnd();
-    }
+import com.gmail.yenliangl.sudoku.puzzle.*;
 
-    boolean generate(int[][] result);
+interface Generator {
+    Puzzle generate(int level);
 }

@@ -29,7 +29,7 @@ public class StandardSudokuGenerator implements Generator {
     }
 
     @Override
-    public boolean generate(int[][] result) {
+    public Puzzle generate(int level) {
         StandardPuzzle puzzle = new StandardPuzzle(generateSudokuTemplate());
 
         Random rand = new Random();
@@ -60,11 +60,7 @@ public class StandardSudokuGenerator implements Generator {
             }
         }
 
-        System.out.println("======Sudoku======");
-        System.out.println(puzzle);
-        System.out.println("==================");
-
-        return true;
+        return puzzle;
     }
 
     protected int[][] generateSudokuTemplate() {
@@ -242,14 +238,10 @@ public class StandardSudokuGenerator implements Generator {
     public static void main(String[] args) {
         StandardSudokuGenerator generator = new StandardSudokuGenerator();
 
-        int[][] puzzle = new int[9][9];
-        generator.generate(puzzle);
+        Puzzle puzzle = generator.generate(0);
 
-        // for(int i = 0; i < 9; i++) {
-        //     for(int j = 0; j < 9; j++) {
-        //         System.out.format("%d ", puzzle[i][j]);
-        //     }
-        //     System.out.println("");
-        // }
+        System.out.println("======Sudoku======");
+        System.out.println(puzzle);
+        System.out.println("==================");
     }
 }
