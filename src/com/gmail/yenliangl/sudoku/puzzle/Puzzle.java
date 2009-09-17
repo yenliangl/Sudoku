@@ -86,8 +86,12 @@ public abstract class Puzzle {
             Iterator<Cell> cells = row.getCells();
             while(cells.hasNext()) {
                 Cell cell = cells.next();
-                sb.append(cell.getValue());
-                sb.append(" ");
+                if(cell.getValue() == 0) {
+                    sb.append("  ");
+                } else {
+                    sb.append(cell.getValue());
+                    sb.append(" ");
+                }
             }
             sb.append("\n");
         }
