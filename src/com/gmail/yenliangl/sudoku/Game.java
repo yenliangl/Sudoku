@@ -12,17 +12,23 @@ import android.view.Menu;
 import android.view.View;
 import android.util.Log;
 
+import com.gmail.yenliangl.sudoku.generator.*;
+
+
 public class Game extends Activity {
     private static final String TAG = "SUDOKU";
-
     private PuzzleView mPuzzleView;
-    // private int[] answer = new int[9 * 9];
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mPuzzleView = new PuzzleView(this);
+
+
+        StandardSudokuGenerator generator = new StandardSudokuGenerator();
+
+        mPuzzleView = new PuzzleView(generator.generate(50),
+                                     this);
         setContentView(mPuzzleView);
     }
 

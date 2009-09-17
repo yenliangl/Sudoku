@@ -13,6 +13,11 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.util.Log;
 
+import java.util.*;
+
+import com.gmail.yenliangl.sudoku.puzzle.*;
+
+
 class PuzzleView extends View {
     private static final String TAG = "PUZZLE";
 
@@ -24,7 +29,8 @@ class PuzzleView extends View {
     private static final String VIEW_STATE_SELECTED_TILE_ROW = "VS_SELECTED_TILE_ROW";
     private static final String VIEW_STATE_SELECTED_TILE_COL = "VS_SELECTED_TILE_COL";
 
-    private int[] puzzle = new int[9*9];
+    // Puzzle structure to draw
+    private Puzzle mPuzzle;
 
     //
     private float mTileWidth = 0f;
@@ -33,9 +39,10 @@ class PuzzleView extends View {
     private static final int PADDING = 5;
 
     // Should pass the answer of the puzzle into this view for drawing.
-    public PuzzleView(Context context) {
+    public PuzzleView(Puzzle puzzle, Context context) {
         super(context);
 
+        mPuzzle = puzzle;
         mGame = (Game)context;
 
         // Need to set this view focusable in order to receive key events.
@@ -98,17 +105,26 @@ class PuzzleView extends View {
         Paint.FontMetrics fm = wordPaint.getFontMetrics();
         float wordHalfHeight =
             (Math.abs(fm.descent) + Math.abs(fm.ascent)) / 2;
-        for(int r = 0; r < 9; r++) {
-            for(int c = 0; c < 9; c++) {
-                int index = r * 9 + c;
-                if(puzzle[index] != 0) {
-                    Rect rect = getSelectedTileRect(r,c);
-                    float x = rect.centerX(),
-                          y = rect.centerY() + wordHalfHeight;
-                    canvas.drawText(Integer.toString(puzzle[index]),
+
+        Iterator<Row> puzzleRows = mPuzzle.getRows();
+        while(puzzleRows.hasNext()) {
+            Row row = puzzleRows.next();
+
+            Iterator<Cell> cells = row.getCells();
+            while(cells.hasNext()) {
+                Cell cell = cells.next();
+                int value = cell.getValue();
+                if(value != 0) {
+                    Rect rect = getSelectedTileRect(cell.getRowIndex(),
+                                                    cell.getColumnIndex());
+                    float x = rect.centerX();
+                    float y = rect.centerY() + wordHalfHeight;
+
+                    canvas.drawText(Integer.toString(value),
                                     0, 1, x, y,
                                     wordPaint);
                 }
+
             }
         }
     }
@@ -235,9 +251,9 @@ class PuzzleView extends View {
             return;
         }
 
-        int index = row * 9 + col;
         Log.d(TAG, "Draw " + number + "on (" + row + ", " + col + ")");
-        puzzle[index] = number;
+        Cell cell = mPuzzle.getCell(row, col);
+        cell.setValue(number);
         invalidate(getSelectedTileRect(row, col));
     }
 }

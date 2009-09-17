@@ -22,7 +22,7 @@ public class StandardSudokuGenerator implements Generator {
         }
     }
 
-    StandardSudokuGenerator() {
+    public StandardSudokuGenerator() {
         mSolver = new Solver();
         mListener = new Listener();
         mSolver.setListener(mListener);
