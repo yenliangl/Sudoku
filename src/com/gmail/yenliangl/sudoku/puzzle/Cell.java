@@ -1,23 +1,27 @@
 package com.gmail.yenliangl.sudoku.puzzle;
 
 public class Cell {
-    private OnValueChangedListener mValueChangedListener;
-    private int mValue;
-    private final int mRowIndex;
-    private final int mColumnIndex;
-
-    Cell(final int rowIndex, final int colIndex) {
-        mRowIndex = rowIndex;
-        mColumnIndex = colIndex;
-        mValue = 0;
-    }
-
     interface OnValueChangedListener {
         void onValueChanged(int oldVal, int newVal);
     }
 
+    private OnValueChangedListener mValueChangedListener;
+    private int mValue;
+    private final int mRowIndex;
+    private final int mColumnIndex;
+    private int mPentominoIndex;
+
+    Cell(final int rowIndex, final int colIndex) {
+        mRowIndex = rowIndex;
+        mColumnIndex = colIndex;
+    }
+
     public void setValueChangedListener(OnValueChangedListener listener) {
         mValueChangedListener = listener;
+    }
+
+    public void setPentominoIndex(int index) {
+        mPentominoIndex = index;
     }
 
     public void setValue(final int value) {
@@ -37,6 +41,10 @@ public class Cell {
 
     public int getRowIndex() {
         return mRowIndex;
+    }
+
+    public int getPentominoIndex() {
+        return mPentominoIndex;
     }
 
     public int getColumnIndex() {

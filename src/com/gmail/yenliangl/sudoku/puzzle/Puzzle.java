@@ -3,25 +3,23 @@ package com.gmail.yenliangl.sudoku.puzzle;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public abstract class Puzzle {
+public class Puzzle {
     private final int mDimension;
     private ArrayList<Cell> mCells;
     private ArrayList<Row> mRows;
     private ArrayList<Column> mColumns;
     private ArrayList<Pentomino> mPentominoes;
 
-    Puzzle(final int dimension) {
+    protected Puzzle(final int dimension) {
         mDimension = dimension;
 
-        createCells(dimension);
-        createRows(dimension);
-        createColumns(dimension);
-
-        mPentominoes = new ArrayList<Pentomino>(dimension);
-        createPentominoes(mPentominoes, dimension);
+        createCells();
+        createRows();
+        createColumns();
+        createPentominoes();
     }
 
-    Puzzle(int[][] array) {
+    protected Puzzle(final int[][] array) {
         this(array.length);
 
         for(int i = 0; i < array.length; i++) {
@@ -31,30 +29,50 @@ public abstract class Puzzle {
         }
     }
 
-    // Puzzle(int dimension, String puzzleString) {
-    // }
+    public void layout(LayoutStrategy strategy) {
+        // Erase current layout
+        Iterator<Row> rows = getRows();
+        while(rows.hasNext()) {
+            Row row = rows.next();
+            row.clear();
+        }
+
+        Iterator<Column> columns = getColumns();
+        while(columns.hasNext()) {
+            Column column = columns.next();
+            column.clear();
+        }
+
+        Iterator<Pentomino> pentominoes = getPentominoes();
+        while(pentominoes.hasNext()) {
+            Pentomino pentomino = pentominoes.next();
+            pentomino.clear();
+        }
+
+        strategy.layout(this);
+    }
 
     public int getNumOfRows() {
-        return mRows.size();
+        return mDimension;
     }
 
     public int getNumOfColumns() {
-        return mColumns.size();
+        return mDimension;
     }
 
     public int getNumOfCells() {
-        return mCells.size();
+        return mDimension;
     }
 
     public int getNumOfPentominoes() {
-        return mPentominoes.size();
+        return mDimension;
     }
 
     public int getDimension() {
         return mDimension;
     }
 
-    public Cell getCell(int rowIndex, int columnIndex) {
+    public Cell getCell(final int rowIndex, final int columnIndex) {
         int cellIndex = calculateCellIndex(rowIndex, columnIndex);
         return mCells.get(cellIndex);
     }
@@ -75,7 +93,23 @@ public abstract class Puzzle {
         return mPentominoes.iterator();
     }
 
-    public abstract Pentomino getPentomino(int rowIndex, int columnIndex);
+    public Row getRow(final int rowIndex) {
+        return mRows.get(rowIndex);
+    }
+
+    public Column getColumn(final int columnIndex) {
+        return mColumns.get(columnIndex);
+    }
+
+    public Pentomino getPentomino(final int rowIndex,
+                                  final int columnIndex) {
+        return mPentominoes.get(
+            getCell(rowIndex, columnIndex).getPentominoIndex());
+    }
+
+    public Pentomino getPentomino(final int pentominoIndex) {
+        return mPentominoes.get(pentominoIndex);
+    }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -98,50 +132,38 @@ public abstract class Puzzle {
         return sb.toString();
     }
 
-    protected abstract void createPentominoes(ArrayList<Pentomino> pentominoes, final int dimension);
-
-    protected Pentomino getPentomino(int index) {
-        return mPentominoes.get(index);
-    }
-
-    private void createCells(final int dimension) {
-        mCells = new ArrayList<Cell>(dimension * dimension);
-
-        for(int r = 0; r < dimension; r++) {
-            for(int c = 0; c < dimension; c++) {
-                Cell cell = new Cell(r, c);
-                mCells.add(cell);
+    private void createCells() {
+        mCells = new ArrayList<Cell>(mDimension * mDimension);
+        for(int i = 0; i < mDimension; i++) {
+            for(int j = 0; j < mDimension; j++) {
+                mCells.add(new Cell(i, j));
             }
         }
     }
 
-    private void createRows(final int dimension) {
-        mRows = new ArrayList<Row>(dimension);
-
-        for(int r = 0; r < dimension; r++) {
-            Row row = new Row(r);
-            mRows.add(row);
-
-            for(int c = 0; c < dimension; c++) {
-                row.addCell(mCells.get(calculateCellIndex(r, c)));
-            }
+    private void createRows() {
+        mRows = new ArrayList<Row>(mDimension);
+        for(int i = 0; i < mDimension; i++) {
+            mRows.add(new Row(i));
         }
     }
 
-    private void createColumns(final int dimension) {
-        mColumns = new ArrayList<Column>(dimension);
-
-        for(int c = 0; c < dimension; c++) {
-            Column column = new Column(c);
-            mColumns.add(column);
-
-            for(int r = 0; r < dimension; r++) {
-                column.addCell(mCells.get(calculateCellIndex(r, c)));
-            }
+    private void createColumns() {
+        mColumns = new ArrayList<Column>(mDimension);
+        for(int i = 0; i < mDimension; i++) {
+            mColumns.add(new Column(i));
         }
     }
 
-    private int calculateCellIndex(final int rowIndex, final int columnIndex) {
+    private void createPentominoes() {
+        mPentominoes = new ArrayList<Pentomino>(mDimension);
+        for(int i = 0; i < mDimension; i++) {
+            mPentominoes.add(new Pentomino(i));
+        }
+    }
+
+    private int calculateCellIndex(final int rowIndex,
+                                   final int columnIndex) {
         return rowIndex * mDimension + columnIndex;
     }
 }

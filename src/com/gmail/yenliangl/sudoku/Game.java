@@ -11,24 +11,20 @@ import android.view.MenuItem;
 import android.view.Menu;
 import android.view.View;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.gmail.yenliangl.sudoku.generator.*;
-
+import com.gmail.yenliangl.sudoku.puzzle.*;
 
 public class Game extends Activity {
-    private static final String TAG = "SUDOKU";
+    private static final String TAG = "Game";
     private PuzzleView mPuzzleView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-
-        StandardSudokuGenerator generator = new StandardSudokuGenerator();
-
-        mPuzzleView = new PuzzleView(generator.generate(50),
-                                     this);
+        mPuzzleView = new PuzzleView(this);
         setContentView(mPuzzleView);
     }
 
@@ -58,6 +54,16 @@ public class Game extends Activity {
                             // TODO: Generate a new game with selected
                             // difficulty level and tell PuzzleView to
                             // refresh
+                            Toast toast = Toast.makeText(
+                                Game.this,
+                                "Generating",
+                                Toast.LENGTH_LONG);
+                            StandardSudokuGenerator generator = new StandardSudokuGenerator();
+                            toast.show();
+                            Puzzle puzzle = generator.generate(50);
+                            toast.cancel();
+
+                            mPuzzleView.startNewPuzzle(puzzle);
                         }
                     })
                 .show();

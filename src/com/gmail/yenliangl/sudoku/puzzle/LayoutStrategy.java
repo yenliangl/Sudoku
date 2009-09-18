@@ -10,8 +10,7 @@ abstract class LayoutStrategy {
     }
 
     protected abstract void layoutPentominoes(Puzzle puzzle);
-    protected abstract int getPentominoIndexOf(final int cellCowIndex,
-                                               final int cellColumnIndex);
+    protected abstract int generatePentominoIndexFor(Cell cell);
 
     protected void layoutRows(Puzzle puzzle) {
         final int dimension = puzzle.getDimension();

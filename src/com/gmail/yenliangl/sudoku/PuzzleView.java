@@ -17,33 +17,32 @@ import java.util.*;
 
 import com.gmail.yenliangl.sudoku.puzzle.*;
 
-
 class PuzzleView extends View {
+    // Debug tag
     private static final String TAG = "PUZZLE";
 
     //
     private final Game mGame;
+    private Puzzle mPuzzle;
 
-    // View state key
+    // Constants
     private static final String VIEW_STATE = "VIEW_STATE";
     private static final String VIEW_STATE_SELECTED_TILE_ROW = "VS_SELECTED_TILE_ROW";
     private static final String VIEW_STATE_SELECTED_TILE_COL = "VS_SELECTED_TILE_COL";
-
-    // Puzzle structure to draw
-    private Puzzle mPuzzle;
-
-    //
-    private float mTileWidth = 0f;
-    private float mTileHeight = 0f;
-    private int mSelectedTileRow = 0, mSelectedTileCol = 0;
+    private static final int THICK_LINE_WIDTH = 4;
     private static final int PADDING = 5;
 
-    // Should pass the answer of the puzzle into this view for drawing.
-    public PuzzleView(Puzzle puzzle, Context context) {
+    private float mCellWidth = 0f;
+    private float mCellHeight = 0f;
+    private int mSelectedCellRow = 0;
+    private int mSelectedCellCol = 0;
+
+    public PuzzleView(Context context) {
         super(context);
 
-        mPuzzle = puzzle;
         mGame = (Game)context;
+
+        System.out.println("PuzzleView(context)");
 
         // Need to set this view focusable in order to receive key events.
         setLongClickable(true);
@@ -51,80 +50,101 @@ class PuzzleView extends View {
         setFocusableInTouchMode(true);
     }
 
+    public PuzzleView(Puzzle puzzle, Context context) {
+        this(context);
+
+        System.out.println("PuzzleView(puzzle,context)");
+
+        mPuzzle = puzzle;
+    }
+
+    public void startNewPuzzle(Puzzle puzzle) {
+        Log.d(TAG, "startNewPuzzle()");
+        mPuzzle = puzzle;
+        invalidate();
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        mTileWidth = (w - 2 * PADDING) / 9f;
-        mTileHeight = (h - 2 * PADDING) / 9f;
+        mCellWidth = (w - 2 * PADDING) / 9f;
+        mCellHeight = (h - 2 * PADDING) / 9f;
 
-        Log.d(TAG, "Tile width=" + mTileWidth + ", tile height=" + mTileHeight);
+        Log.d(TAG, "Cell width=" + mCellWidth + ",height=" + mCellHeight);
 
         super.onSizeChanged(w, h, oldw, oldh);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // Fill bounding rectangle with defined background in XML.
+        // Fill bounding rectangle with defined background
+        // R.color.puzzle_background in XML.
         Paint paint = new Paint();
         paint.setColor(getResources().getColor(R.color.puzzle_background));
         paint.setStyle(Paint.Style.FILL);
         canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
 
-        // Draw grid lines
+        // Draw grid lines. Every block boundary should be drawn
+        // thicker than other lines.
         Paint darkPaint = new Paint();
-        darkPaint.setColor(
-            getResources().getColor(android.R.color.background_dark));
+        darkPaint.setColor(getResources().getColor(android.R.color.background_dark));
         darkPaint.setStyle(Paint.Style.STROKE);
         for(int i = 0; i < 10; i++) {
-            if(i % 3 == 0) { // draw thick line
-                darkPaint.setStrokeWidth(2);
+            // Draw thick line for every block's boundary
+            if(i % 3 == 0) {
+                darkPaint.setStrokeWidth(THICK_LINE_WIDTH);
             } else {
                 darkPaint.setStrokeWidth(1);
             }
 
             float x1 = PADDING, x2 = getWidth() - PADDING;
-            float y = PADDING + i * mTileHeight;
+            float y = PADDING + i * mCellHeight;
             canvas.drawLine(x1, y, x2, y, darkPaint );
 
             float y1 = PADDING, y2 = getHeight() - PADDING;
-            float x = PADDING + i * mTileWidth;
+            float x = PADDING + i * mCellWidth;
             canvas.drawLine(x, y1, x, y2, darkPaint );
         }
 
-        // Paint current selected tile...
-        Paint selected = new Paint();
-        selected.setColor(getResources().getColor(R.color.puzzle_selected));
-        selected.setStyle(Paint.Style.FILL);
+        // Draw selected cell with different color
+        Paint hilitePaint = new Paint();
+        hilitePaint.setColor(getResources().getColor(R.color.puzzle_selected));
+        hilitePaint.setStyle(Paint.Style.FILL);
         canvas.drawRect(
-            getSelectedTileRect(mSelectedTileRow, mSelectedTileCol),
-            selected);
+            getSelectedCellRect(mSelectedCellRow, mSelectedCellCol),
+            hilitePaint);
 
-        // Draw tiles with values other than zero.
-        // @todo: choose hintPaint when hinting is turned on.
-        Paint wordPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
+        // Draw non-empty cells
+        Paint wordPaint = new Paint(Paint.ANTI_ALIAS_FLAG |
+                                    Paint.SUBPIXEL_TEXT_FLAG);
         wordPaint.setTextAlign(Paint.Align.CENTER);
         Paint.FontMetrics fm = wordPaint.getFontMetrics();
         float wordHalfHeight =
             (Math.abs(fm.descent) + Math.abs(fm.ascent)) / 2;
 
-        Iterator<Row> puzzleRows = mPuzzle.getRows();
-        while(puzzleRows.hasNext()) {
-            Row row = puzzleRows.next();
+        if(mPuzzle != null) {
+            Iterator<Row> rows = mPuzzle.getRows();
+            while(rows.hasNext()) {
+                Row row = rows.next();
 
-            Iterator<Cell> cells = row.getCells();
-            while(cells.hasNext()) {
-                Cell cell = cells.next();
-                int value = cell.getValue();
-                if(value != 0) {
-                    Rect rect = getSelectedTileRect(cell.getRowIndex(),
-                                                    cell.getColumnIndex());
-                    float x = rect.centerX();
-                    float y = rect.centerY() + wordHalfHeight;
+                Iterator<Cell> cells = row.getCells();
+                while(cells.hasNext()) {
+                    Cell cell = cells.next();
+                    int value = cell.getValue();
+                    if(value != 0) {
+                        Rect rect =
+                            getSelectedCellRect(cell.getRowIndex(),
+                                                cell.getColumnIndex());
+                        float x = rect.centerX();
+                        float y = rect.centerY() + wordHalfHeight;
 
-                    canvas.drawText(Integer.toString(value),
-                                    0, 1, x, y,
-                                    wordPaint);
+                        canvas.drawText(Integer.toString(value),
+                                        0, 1, x, y,
+                                        wordPaint);
+                        Log.d(TAG,
+                              "Drawing cell(" + cell.getRowIndex() + "," +
+                              cell.getColumnIndex() + ")");
+                    }
                 }
-
             }
         }
     }
@@ -135,43 +155,43 @@ class PuzzleView extends View {
 
         switch(keyCode) {
         case KeyEvent.KEYCODE_DPAD_UP:
-            selectTile(mSelectedTileRow-1, mSelectedTileCol);
+            selectCell(mSelectedCellRow-1, mSelectedCellCol);
             break;
         case KeyEvent.KEYCODE_DPAD_DOWN:
-            selectTile(mSelectedTileRow+1, mSelectedTileCol);
+            selectCell(mSelectedCellRow+1, mSelectedCellCol);
             break;
         case KeyEvent.KEYCODE_DPAD_LEFT:
-            selectTile(mSelectedTileRow, mSelectedTileCol-1);
+            selectCell(mSelectedCellRow, mSelectedCellCol-1);
             break;
         case KeyEvent.KEYCODE_DPAD_RIGHT:
-            selectTile(mSelectedTileRow, mSelectedTileCol+1);
+            selectCell(mSelectedCellRow, mSelectedCellCol+1);
             break;
         case KeyEvent.KEYCODE_1:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 1);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 1);
             break;
         case KeyEvent.KEYCODE_2:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 2);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 2);
             break;
         case KeyEvent.KEYCODE_3:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 3);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 3);
             break;
         case KeyEvent.KEYCODE_4:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 4);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 4);
             break;
         case KeyEvent.KEYCODE_5:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 5);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 5);
             break;
         case KeyEvent.KEYCODE_6:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 6);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 6);
             break;
         case KeyEvent.KEYCODE_7:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 7);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 7);
             break;
         case KeyEvent.KEYCODE_8:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 8);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 8);
             break;
         case KeyEvent.KEYCODE_9:
-            drawNumberOnTile(mSelectedTileRow, mSelectedTileCol, 9);
+            drawNumberOnCell(mSelectedCellRow, mSelectedCellCol, 9);
             break;
 
             // Press s to shake the PuzzleView.
@@ -189,25 +209,25 @@ class PuzzleView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        Log.d(TAG,
-              "onTouchEvent(" + e.getAction() + ") at (" +
+        Log.d(TAG, "onTouchEvent(" + e.getAction() + ") at (" +
               e.getX() + ", " + e.getY() + ")");
 
         float x = e.getX(), y = e.getY();
-        int row = (int)((y - PADDING) / mTileHeight);
-        int col = (int)((x - PADDING) / mTileWidth);
+        int row = (int)((y - PADDING) / mCellHeight);
+        int col = (int)((x - PADDING) / mCellWidth);
 
-        selectTile(row, col);
+        selectCell(row, col);
         return true;
     }
 
     @Override
     protected Parcelable onSaveInstanceState() {
-        Parcelable p = super.onSaveInstanceState();
         Log.d(TAG, "onSaveInstanceState()");
+
+        Parcelable p = super.onSaveInstanceState();
         Bundle bundle = new Bundle();
-        bundle.putInt(VIEW_STATE_SELECTED_TILE_ROW, mSelectedTileRow);
-        bundle.putInt(VIEW_STATE_SELECTED_TILE_COL, mSelectedTileCol);
+        bundle.putInt(VIEW_STATE_SELECTED_TILE_ROW, mSelectedCellRow);
+        bundle.putInt(VIEW_STATE_SELECTED_TILE_COL, mSelectedCellCol);
         bundle.putParcelable(VIEW_STATE, p);
         return bundle;
     }
@@ -217,43 +237,42 @@ class PuzzleView extends View {
         Bundle bundle = (Bundle)state;
         int row = bundle.getInt(VIEW_STATE_SELECTED_TILE_ROW),
             col = bundle.getInt(VIEW_STATE_SELECTED_TILE_COL);
-        selectTile(row, col);
+        selectCell(row, col);
 
         super.onRestoreInstanceState(bundle.getParcelable(VIEW_STATE));
     }
 
-    // Double-buffering
-    private void selectTile(int row, int col) {
+    private void selectCell(int row, int col) {
         if (row < 0 || col < 0 || row > 8 || col > 8) {
             return;
         }
 
-        Log.d(TAG, "Select tile (" + mSelectedTileRow + ", " + mSelectedTileCol + ") -> (" + row + ", " + col + ")" );
+        Log.d(TAG, "Select cell (" + mSelectedCellRow + ", " + mSelectedCellCol + ") -> (" + row + ", " + col + ")" );
 
-        invalidate(getSelectedTileRect(mSelectedTileRow,
-                                       mSelectedTileCol));
+        invalidate(getSelectedCellRect(mSelectedCellRow,
+                                       mSelectedCellCol));
 
-        mSelectedTileRow = row;
-        mSelectedTileCol = col;
-        invalidate(getSelectedTileRect(mSelectedTileRow,
-                                       mSelectedTileCol));
+        mSelectedCellRow = row;
+        mSelectedCellCol = col;
+        invalidate(getSelectedCellRect(mSelectedCellRow,
+                                       mSelectedCellCol));
     }
 
-    private Rect getSelectedTileRect(int row, int col) {
-        float left = PADDING + col * mTileWidth,
-               top = PADDING + row * mTileHeight;
+    private Rect getSelectedCellRect(int row, int col) {
+        float left = PADDING + col * mCellWidth,
+               top = PADDING + row * mCellHeight;
         return new Rect((int)left, (int)top,
-                        (int)(left + mTileWidth), (int)(top + mTileHeight));
+                        (int)(left + mCellWidth), (int)(top + mCellHeight));
     }
 
-    private void drawNumberOnTile(int row, int col, int number) {
+    private void drawNumberOnCell(int row, int col, int number) {
         if(number < 1 || number > 9) {
             return;
         }
 
-        Log.d(TAG, "Draw " + number + "on (" + row + ", " + col + ")");
+        Log.d(TAG, "Draw " + number + " on (" + row + ", " + col + ")");
         Cell cell = mPuzzle.getCell(row, col);
         cell.setValue(number);
-        invalidate(getSelectedTileRect(row, col));
+        invalidate(getSelectedCellRect(row, col));
     }
 }

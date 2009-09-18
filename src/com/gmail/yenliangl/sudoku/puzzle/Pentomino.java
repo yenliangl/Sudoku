@@ -9,7 +9,6 @@ public class Pentomino {
 
     Pentomino(final int index) {
         mIndex = index;
-
         mCells = new ArrayList<Cell>();
     }
 
@@ -19,9 +18,14 @@ public class Pentomino {
 
     public void addCell(Cell cell) {
         mCells.add(cell);
+        cell.setPentominoIndex(mIndex);
     }
 
     public Iterator<Cell> getCells() {
         return mCells.iterator();
+    }
+
+    public void clear() {
+        mCells.clear();
     }
 }
